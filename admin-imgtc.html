@@ -1,6 +1,5 @@
-  <!DOCTYPE html>
-  <html lang="zh">
-  
+<!DOCTYPE html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
     <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
-    
     <style>
       body {
         background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -300,7 +298,9 @@
       <el-container>
         <el-header>
           <div class="header-content">
-            <span class="title" @click="refreshDashboard">Dashboard</span>
+            <span class="title"
+                  :style="{ color: showFavorites ? '#FFD7E4' : '#333' }"
+                  @click="toggleFavorites">Dashboard</span> 
             <div class="search-card">
               <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
             </div>
@@ -393,10 +393,16 @@
         pageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
+        showFavorites: false,
+        isLoading: true,
       },
       computed: {
         filteredTableData() {
-          return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+          return this.tableData.filter(data => {
+            const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
+            const matchesFavorites = !this.showFavorites || data.metadata.liked;
+            return matchesSearch && matchesFavorites;
+          });
         },
         paginatedTableData() {
           const sortedData = this.sortData(this.filteredTableData);
@@ -713,12 +719,34 @@
         sortData(data) {
           return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
             data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        }
+        },
+        toggleFavorites() {
+          this.showFavorites = !this.showFavorites;
+          this.currentPage = 1;
+
+          this.$message({
+            message: this.showFavorites ? '已筛选收藏内容' : '显示全部内容',
+            type: 'success',
+            duration: 1500
+          });
+        },
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
         this.updateWindowWidth();
-        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
+        this.checkAuth()
+          .then(() => this.loadData())
+          .catch(err => {
+            console.error('Auth check failed:', err);
+            this.$message.error('认证检查失败，但您仍可以查看UI界面');
+          });
+      },
+      methods: {
+        checkAuth() {
+          return fetch("./api/manage/check", {
+            method: 'GET',
+            credentials: 'include'
+          })
           .then(response => response.text())
           .then(result => {
             if (result == "true") {
@@ -728,13 +756,16 @@
             } else {
               window.location.href = "./api/manage/login";
             }
-          })
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+          });
+        },
 
-        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+        loadData() {
+          return fetch("./api/manage/list", {
+            method: 'GET',
+            credentials: 'include'
+          })
           .then(response => response.json())
           .then(result => {
-            console.log("result: ", result);
             this.tableData = result.map(file => ({
               ...file,
               selected: false,
@@ -750,7 +781,14 @@
             }
             this.sortData(this.tableData);
           })
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+          .catch(err => {
+            console.error('Data loading failed:', err);
+            this.$message.error('数据加载失败，但UI界面仍可查看');
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+        },
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
