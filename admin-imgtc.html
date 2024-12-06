@@ -687,14 +687,18 @@
         handlePageChange(page) {
           this.currentPage = page;
         },
-        toggleLike(index, key) {  // 收藏图片
-          console.log(`Toggling like for image: ${key}`);
+        toggleLike(index, name) {
+          console.log(`Toggling like for image: ${name}`);
+
+          // 找到对应文件的索引
+          const fileIndex = this.tableData.findIndex(file => file.name === name);
+          if (fileIndex === -1) return;
 
           // 乐观更新收藏状态
-          if (this.tableData[index].metadata.liked === undefined) {
-            this.tableData[index].metadata.liked = false;
+          if (this.tableData[fileIndex].metadata.liked === undefined) {
+            this.tableData[fileIndex].metadata.liked = false;
           }
-          this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+          this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
 
           // 发送请求更新服务器数据
           var requestOptions = {
@@ -703,12 +707,12 @@
             credentials: 'include'
           };
 
-          fetch(`./api/manage/toggleLike/${key}`, requestOptions)
+          fetch(`./api/manage/toggleLike/${name}`, requestOptions)
             .then(response => response.json())
             .then(result => {
               if (!result.success) {
                 // 如果服务器更新失败，将状态还原
-                this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+                this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
                 this.$message({
                   message: '更新收藏状态失败，请稍后重试',
                   type: 'error'
@@ -720,7 +724,7 @@
             .catch(error => {
               console.error("An error occurred while synchronizing data with the server", error);
               // 如果服务器响应错误，将状态还原
-              this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+              this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
               this.$message({
                 message: '同步服务器失败，请检查网络连接',
                 type: 'error'
@@ -803,7 +807,7 @@
               selected: false,
               metadata: {
                 ...file.metadata,
-                liked: file.metadata.liked !== undefined ? file.metadata.liked : false
+                liked: file.metadata.liked ?? false
               }
             }));
             this.updateStats();
