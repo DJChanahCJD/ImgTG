@@ -1,6 +1,7 @@
   <!DOCTYPE html>
   <html lang="zh">
-  <head>
+  
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ImgTC | Admin</title>
@@ -719,7 +720,15 @@
         this.updateWindowWidth();
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
-          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+          .then(result => {
+            if (result == "true") {
+              this.showLogoutButton = true;
+            } else if (result == "Not using basic auth.") {
+              // Do nothing
+            } else {
+              window.location.href = "./api/manage/login";
+            }
+          })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
         fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
