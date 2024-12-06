@@ -1,6 +1,6 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
+  <!DOCTYPE html>
+  <html lang="zh">
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ImgTC | Admin</title>
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
     <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
+
     <style>
       body {
         background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -299,8 +300,8 @@
         <el-header>
           <div class="header-content">
             <span class="title"
-                  :style="{ color: showFavorites ? '#FFD7E4' : '#333' }"
-                  @click="toggleFavorites">Dashboard</span> 
+              :style="{ color: showFavorites ? '#FFD7E4' : '#333' }"
+              @click="toggleFavorites">Dashboard</span>
             <div class="search-card">
               <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
             </div>
@@ -321,6 +322,11 @@
                     <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
+              </el-tooltip>
+              <el-tooltip content="收藏筛选" placement="bottom">
+                <i class="fas fa-heart"
+                   :class="{ enabled: showFavorites }"
+                   @click="toggleFavorites"></i>
               </el-tooltip>
               <el-tooltip content="批量复制" placement="bottom">
                 <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
@@ -394,7 +400,6 @@
         selectedFiles: [],
         sortOption: 'dateDesc',
         showFavorites: false,
-        isLoading: true,
       },
       computed: {
         filteredTableData() {
@@ -669,8 +674,7 @@
         handlePageChange(page) {
           this.currentPage = page;
         },
-        // 处理收藏事件
-        toggleLike(index, key) {
+        toggleLike(index, key) {  // 收藏图片
           console.log(`Toggling like for image: ${key}`);
 
           // 乐观更新收藏状态
@@ -710,6 +714,16 @@
               });
             });
         },
+        toggleFavorites() { // 筛选收藏图片
+          this.showFavorites = !this.showFavorites;
+          this.currentPage = 1;
+
+          this.$message({
+            message: this.showFavorites ? '已筛选收藏图片' : '显示全部图片',
+            type: 'success',
+            duration: 1500
+          });
+        },
         updateStats() {
           this.Number = this.tableData.length;
         },
@@ -719,53 +733,20 @@
         sortData(data) {
           return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
             data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        },
-        toggleFavorites() {
-          this.showFavorites = !this.showFavorites;
-          this.currentPage = 1;
-
-          this.$message({
-            message: this.showFavorites ? '已筛选收藏内容' : '显示全部内容',
-            type: 'success',
-            duration: 1500
-          });
-        },
+        }
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
         this.updateWindowWidth();
-        this.checkAuth()
-          .then(() => this.loadData())
-          .catch(err => {
-            console.error('Auth check failed:', err);
-            this.$message.error('认证检查失败，但您仍可以查看UI界面');
-          });
-      },
-      methods: {
-        checkAuth() {
-          return fetch("./api/manage/check", {
-            method: 'GET',
-            credentials: 'include'
-          })
+        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
-          .then(result => {
-            if (result == "true") {
-              this.showLogoutButton = true;
-            } else if (result == "Not using basic auth.") {
-              // Do nothing
-            } else {
-              window.location.href = "./api/manage/login";
-            }
-          });
-        },
+          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-        loadData() {
-          return fetch("./api/manage/list", {
-            method: 'GET',
-            credentials: 'include'
-          })
+        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
           .then(response => response.json())
           .then(result => {
+            console.log("result: ", result);
             this.tableData = result.map(file => ({
               ...file,
               selected: false,
@@ -781,14 +762,7 @@
             }
             this.sortData(this.tableData);
           })
-          .catch(err => {
-            console.error('Data loading failed:', err);
-            this.$message.error('数据加载失败，但UI界面仍可查看');
-          })
-          .finally(() => {
-            this.isLoading = false;
-          });
-        },
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
