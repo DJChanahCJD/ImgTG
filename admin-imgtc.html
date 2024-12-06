@@ -292,6 +292,19 @@
         .el-card__body{padding: 0;}
         .search-card {display: none;}
       }
+
+      .selection-container {
+        position: relative;
+        flex-grow: 1;
+      }
+
+      .selection-box {
+        position: fixed;
+        border: 2px solid rgba(179, 157, 219, 0.5);
+        background: rgba(179, 157, 219, 0.1);
+        pointer-events: none;
+        z-index: 1000;
+      }
     </style>
   </head>
   <body>
@@ -331,7 +344,7 @@
                 <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
               </el-tooltip>
               <el-tooltip content="检测失效图片" placement="bottom">
-                <i class="fas fa-search-minus" @click="checkBrokenImages"></i>
+                <i class="fas fa-wrench" @click="checkBrokenImages"></i>
               </el-tooltip>
               <el-tooltip content="退出登录" placement="bottom">
                 <i class="fas fa-home" @click="handleLogout"></i>
@@ -340,27 +353,33 @@
           </div>
         </el-header>
         <el-main class="main-container">
-          <div class="content">
-            <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
-                <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                  <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
-                </span>
-                <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <el-image
-                  :src="'/file/' + item.name"
-                  :preview-src-list="['/file/' + item.name]"
-                  fit="cover"
-                  lazy></el-image>
-                <div class="image-overlay">
-                  <div class="overlay-buttons">
-                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                    <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+          <div class="selection-container"
+               @mousedown="startSelection"
+               @mousemove="updateSelection"
+               @mouseup="endSelection">
+            <div class="selection-box" v-show="isSelecting" :style="selectionStyle"></div>
+            <div class="content">
+              <template v-for="(item, index) in paginatedTableData" :key="index">
+                <el-card>
+                  <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                    <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+                  </span>
+                  <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+                  <el-image
+                    :src="'/file/' + item.name"
+                    :preview-src-list="['/file/' + item.name]"
+                    fit="cover"
+                    lazy></el-image>
+                  <div class="image-overlay">
+                    <div class="overlay-buttons">
+                      <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                      <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                    </div>
                   </div>
-                </div>
-                <div class="file-info">{{ item.name }}</div>
-              </el-card>
-            </template>
+                  <div class="file-info">{{ item.name }}</div>
+                </el-card>
+              </template>
+            </div>
           </div>
           <div class="pagination-container">
             <el-pagination
@@ -399,6 +418,9 @@
         selectedFiles: [],
         sortOption: 'dateDesc',
         showFavorites: false,
+        isSelecting: false,
+        selectionStart: { x: 0, y: 0 },
+        selectionEnd: { x: 0, y: 0 },
       },
       computed: {
         filteredTableData() {
@@ -409,14 +431,34 @@
           });
         },
         paginatedTableData() {
-          const sortedData = this.sortData(this.filteredTableData);
+          const filteredData = this.filteredTableData;
+          if (filteredData.length === 0) {
+            this.$message.info('暂无符合条件的图片');
+            return [];
+          };
+          const sortedData = this.sortData(filteredData);
           const start = (this.currentPage - 1) * this.pageSize;
           const end = start + this.pageSize;
           return sortedData.slice(start, end);
         },
         sortIcon() {
           return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
-        }
+        },
+        selectionStyle() {
+          if (!this.isSelecting) return {};
+
+          const left = Math.min(this.selectionStart.x, this.selectionEnd.x);
+          const top = Math.min(this.selectionStart.y, this.selectionEnd.y);
+          const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
+          const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
+
+          return {
+            left: `${left}px`,
+            top: `${top}px`,
+            width: `${width}px`,
+            height: `${height}px`,
+          };
+        },
       },
       watch: {
         tableData: {
@@ -771,6 +813,63 @@
             }
           });
         },
+        startSelection(e) {
+          // 如果点击的是卡片内的元素，不启动框选
+          if (e.target.closest('.el-card')) return;
+
+          this.isSelecting = true;
+          this.selectionStart = {
+            x: e.clientX,
+            y: e.clientY,
+          };
+          this.selectionEnd = { ...this.selectionStart };
+        },
+
+        updateSelection(e) {
+          if (!this.isSelecting) return;
+
+          this.selectionEnd = {
+            x: e.clientX,
+            y: e.clientY,
+          };
+
+          // 检查框选区域内的卡片
+          this.checkSelectedCards();
+        },
+
+        endSelection() {
+          this.isSelecting = false;
+        },
+
+        checkSelectedCards() {
+          if (!this.isSelecting) return;
+
+          const selectionRect = {
+            left: Math.min(this.selectionStart.x, this.selectionEnd.x),
+            right: Math.max(this.selectionStart.x, this.selectionEnd.x),
+            top: Math.min(this.selectionStart.y, this.selectionEnd.y),
+            bottom: Math.max(this.selectionStart.y, this.selectionEnd.y),
+          };
+
+          // 获取所有卡片元素
+          const cards = document.querySelectorAll('.el-card');
+          cards.forEach((card, index) => {
+            const rect = card.getBoundingClientRect();
+
+            // 检查卡片是否与选择框相交
+            const isIntersecting = !(
+              rect.right < selectionRect.left ||
+              rect.left > selectionRect.right ||
+              rect.bottom < selectionRect.top ||
+              rect.top > selectionRect.bottom
+            );
+
+            // 更新选中状态
+            if (isIntersecting) {
+              this.tableData[index].selected = true;
+            }
+          });
+        },
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
@@ -800,6 +899,19 @@
             this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+        // 添加按键监听，支持 Shift 键多选
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Shift') {
+            this.isShiftPressed = true;
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          if (e.key === 'Shift') {
+            this.isShiftPressed = false;
+          }
+        });
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
