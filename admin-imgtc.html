@@ -296,6 +296,9 @@
       .selection-container {
         position: relative;
         flex-grow: 1;
+        min-height: calc(100vh - 80px);
+        width: 100%;
+        overflow: hidden;
       }
 
       .selection-box {
@@ -354,7 +357,7 @@
         </el-header>
         <el-main class="main-container">
           <div class="selection-container"
-               @mousedown="startSelection"
+               @mousedown.prevent="startSelection"
                @mousemove="updateSelection"
                @mouseup="endSelection">
             <div class="selection-box" v-show="isSelecting" :style="selectionStyle"></div>
@@ -421,6 +424,7 @@
         isSelecting: false,
         selectionStart: { x: 0, y: 0 },
         selectionEnd: { x: 0, y: 0 },
+        isCtrlPressed: false,
       },
       computed: {
         filteredTableData() {
@@ -431,12 +435,7 @@
           });
         },
         paginatedTableData() {
-          const filteredData = this.filteredTableData;
-          if (filteredData.length === 0) {
-            this.$message.info('暂无符合条件的图片');
-            return [];
-          };
-          const sortedData = this.sortData(filteredData);
+          const sortedData = this.sortData(this.filteredTableData);
           const start = (this.currentPage - 1) * this.pageSize;
           const end = start + this.pageSize;
           return sortedData.slice(start, end);
@@ -814,15 +813,22 @@
           });
         },
         startSelection(e) {
-          // 如果点击的是卡片内的元素，不启动框选
-          if (e.target.closest('.el-card')) return;
+          // 如果点击的是卡片或其他交互元素，不启动框选
+          if (e.target.closest('.el-card, .el-checkbox, .collect-icon')) {
+            return;
+          }
 
           this.isSelecting = true;
           this.selectionStart = {
             x: e.clientX,
-            y: e.clientY,
+            y: e.clientY
           };
           this.selectionEnd = { ...this.selectionStart };
+
+          // 如果没有按住 Ctrl 键，清除之前的选择
+          if (!this.isCtrlPressed) {
+            this.tableData.forEach(item => item.selected = false);
+          }
         },
 
         updateSelection(e) {
@@ -830,10 +836,9 @@
 
           this.selectionEnd = {
             x: e.clientX,
-            y: e.clientY,
+            y: e.clientY
           };
 
-          // 检查框选区域内的卡片
           this.checkSelectedCards();
         },
 
@@ -848,10 +853,10 @@
             left: Math.min(this.selectionStart.x, this.selectionEnd.x),
             right: Math.max(this.selectionStart.x, this.selectionEnd.x),
             top: Math.min(this.selectionStart.y, this.selectionEnd.y),
-            bottom: Math.max(this.selectionStart.y, this.selectionEnd.y),
+            bottom: Math.max(this.selectionStart.y, this.selectionEnd.y)
           };
 
-          // 获取所有卡片元素
+          // 获取当前页面显示的卡片
           const cards = document.querySelectorAll('.el-card');
           cards.forEach((card, index) => {
             const rect = card.getBoundingClientRect();
@@ -866,10 +871,13 @@
 
             // 更新选中状态
             if (isIntersecting) {
-              this.tableData[index].selected = true;
+              const realIndex = index + (this.currentPage - 1) * this.pageSize;
+              if (realIndex < this.tableData.length) {
+                this.tableData[realIndex].selected = !this.tableData[realIndex].selected;
+              }
             }
           });
-        },
+        }
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
@@ -902,14 +910,14 @@
 
         // 添加按键监听，支持 Shift 键多选
         window.addEventListener('keydown', (e) => {
-          if (e.key === 'Shift') {
-            this.isShiftPressed = true;
+          if (e.key === 'Control') {
+            this.isCtrlPressed = true;
           }
         });
 
         window.addEventListener('keyup', (e) => {
-          if (e.key === 'Shift') {
-            this.isShiftPressed = false;
+          if (e.key === 'Control') {
+            this.isCtrlPressed = false;
           }
         });
       },
