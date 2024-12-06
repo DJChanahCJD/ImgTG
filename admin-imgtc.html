@@ -348,6 +348,9 @@
               <el-tooltip content="退出登录" placement="bottom">
                 <i class="fas fa-home" @click="handleLogout"></i>
               </el-tooltip>
+              <el-tooltip content="检测失效图片" placement="bottom">
+                <i class="fas fa-wrench" @click="checkBrokenImages"></i>
+              </el-tooltip>
             </div>
           </div>
         </el-header>
@@ -731,7 +734,7 @@
             })
             .catch(error => {
               console.error("An error occurred while synchronizing data with the server", error);
-              // 如果服务器响应错误，将状态还原
+              // 如果服务器响应错误，将状��还原
               this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
               this.$message({
                 message: '同步服务器失败，请检查网络连接',
@@ -827,7 +830,46 @@
             console.error('Data loading failed:', err);
             this.$message.error('数据加载失败');
           }
-        }
+        },
+
+        checkBrokenImages() {
+          const loadingMessage = this.$message({
+            message: '正在检测失效图片...',
+            duration: 0,
+            showClose: false,
+          });
+
+          let brokenCount = 0;
+          const promises = this.tableData.map((item, index) => {
+            return new Promise((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve({ index, status: 'success' });
+              img.onerror = () => {
+                brokenCount++;
+                this.tableData[index].selected = true;
+                resolve({ index, status: 'error' });
+              };
+              img.src = `${this.baseURL}/file/${item.name}`;
+            });
+          });
+
+          Promise.all(promises).then(() => {
+            loadingMessage.close();
+            if (brokenCount > 0) {
+              this.$message({
+                dangerouslyUseHTMLString: true,
+                message: `检测到 ${brokenCount} 张失效图片，已自动选中。<br>您可以使用批量删除功能移除它们。`,
+                type: 'warning',
+                duration: 5000
+              });
+            } else {
+              this.$message({
+                message: '未检测到失效图片',
+                type: 'success'
+              });
+            }
+          });
+        },
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
