@@ -217,6 +217,7 @@
         background: rgba(0, 0, 0, 0.6);
         opacity: 0;
         transition: opacity 0.3s ease;
+        pointer-events: none;
       }
 
       .el-card:hover .image-overlay {
@@ -324,7 +325,7 @@
               <el-tooltip content="收藏筛选" placement="bottom">
                 <i class="fas fa-heart" :class="{ enabled: showFavorites }" @click="toggleFavorites"></i>
               </el-tooltip>
-              <el-tooltip content="本页全选" placement="bottom">
+              <el-tooltip content="全选当前页" placement="bottom">
                 <i class="fas fa-check-square" @click="selectAllInPage"></i>
               </el-tooltip>
               <el-tooltip content="批量复制" placement="bottom">
@@ -354,7 +355,8 @@
                   :src="'/file/' + item.name"
                   :preview-src-list="['/file/' + item.name]"
                   fit="cover"
-                  lazy></el-image>
+                  loading="lazy"
+                  ></el-image>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
@@ -598,7 +600,13 @@
           event.target.value = '';
         },
         selectAllInPage() {
-          this.paginatedTableData.forEach(file => file.selected = true);
+          const allSelected = this.paginatedTableData.every(file => file.selected);
+          // 如果本页所有图片都已选中，则取消选中
+          if (allSelected) {
+            this.paginatedTableData.forEach(file => file.selected = false);
+          } else {
+            this.paginatedTableData.forEach(file => file.selected = true);
+          }
         },
         refreshFileList() {
           // 重新获取文件列表
