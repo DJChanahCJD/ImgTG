@@ -171,6 +171,7 @@
         object-fit: cover;
         transition: transform 0.3s ease;
         border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
       }
 
       .el-card:hover {
@@ -227,6 +228,16 @@
         opacity: 1;
       }
 
+      .el-card.selectable:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .selectable {
+        -webkit-user-select: none; /* Safari 3+ 支持 */
+        user-select: none; /* 防止文本选择影响框选 */
+        cursor: pointer;
+      }
       .overlay-buttons {
         display: flex;
         gap: 10px;
@@ -343,31 +354,35 @@
         <el-main class="main-container">
           <div class="content">
             <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
+              <el-card
+                @mousedown.native="handleMouseDown(index)"
+                @mouseover.native="handleMouseOver(index)"
+                @mouseup.native="handleMouseUp"
+                :class="{ 'selectable': isCtrlPressed }">
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <div v-loading="!item.loaded"
-                     element-loading-text="加载中..."
-                     element-loading-spinner="el-icon-loading"
-                     element-loading-background="rgba(0, 0, 0, 0.5)">
+                <div v-loading="!item.loaded && !item.loadError"
+                  :element-loading-text="item.loadError ? '' : '加载中...'"
+                  element-loading-spinner="el-icon-loading"
+                  element-loading-background="rgba(255, 255, 255, 0.8)">
                   <el-image
                     :src="'/file/' + item.name"
                     :preview-src-list="['/file/' + item.name]"
-                    @load="item.loaded = true"
+                    @load="handleImageLoad(index, item)"
                     @error="handleImageError(index, item)"
                     fit="cover"
                     lazy>
                   </el-image>
-                </div>
-                <div class="image-overlay">
-                  <div class="overlay-buttons">
-                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                    <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                  <div class="image-overlay">
+                    <div class="overlay-buttons">
+                      <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                      <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                    </div>
                   </div>
+                  <div class="file-info">{{ item.name }}</div>
                 </div>
-                <div class="file-info">{{ item.name }}</div>
               </el-card>
             </template>
           </div>
@@ -632,7 +647,7 @@
           }).catch(() => this.$message.info('已取消删除'));
         },
         handleBatchDelete() {
-          this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
+          this.$confirm('此操作将永久删除这 ' + this.selectedFiles.length + ' 个文件, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -765,40 +780,33 @@
           this.tableData[index].selected = !this.tableData[index].selected;
         },
 
-        // 处理图片加载错误
+        handleImageLoad(index, item) {
+          item.loaded = true;
+          item.loadError = false;
+        },
+
         handleImageError(index, item) {
           item.loadError = true;
-          item.selected = true;  // 自动选中加载失败的图片
-
-          // 统计加载失败的图片数量
-          const failedCount = this.tableData.filter(item => item.loadError).length;
-
-          // 只在第一次出现加载失败时显示消息
-          if (failedCount === 1) {
-            this.$message({
-              message: '检测到加载失败的图片，已自动选中，可直接删除',
-              type: 'warning',
-              duration: 3000
-            });
-          }
-
-          return true; // 显示默认的错误占位图
+          item.loaded = true; // 加载结束，无论成功失败
+          item.selected = true;
+          this.checkAllImagesLoaded();
         },
 
-        // 检查图片是否可访问
-        async checkImageExists(item) {
-          try {
-            const response = await fetch('/file/' + item.name, {
-              method: 'HEAD',  // 只检查头信息，不下载图片内容
-              credentials: 'include'
-            });
-            return response.ok;
-          } catch {
-            return false;
+        checkAllImagesLoaded() {
+          // 检查是否所有图片都已加载完成（成功或失败）
+          const allLoaded = this.tableData.every(item => item.loaded);
+          if (allLoaded) {
+            const failedCount = this.tableData.filter(item => item.loadError).length;
+            if (failedCount > 0) {
+              this.$message({
+                message: `检测到 ${failedCount} 张图片加载失败，已自动选中，可直接删除`,
+                type: 'warning',
+                duration: 3000
+              });
+            }
           }
         },
 
-        // 在加载数据时检查图片
         async loadData() {
           try {
             const response = await fetch("./api/manage/list", {
@@ -810,21 +818,11 @@
             this.tableData = result.map(file => ({
               ...file,
               selected: false,
-              loaded: false,  // 初始化加载状态
+              loaded: false,
               loadError: false
             }));
 
-            // 更新统计信息
             this.updateStats();
-
-            // 异步检查所有图片
-            this.tableData.forEach(async (item, index) => {
-              const exists = await this.checkImageExists(item);
-              if (!exists) {
-                this.handleImageError(index, item);
-              }
-            });
-
           } catch (err) {
             console.error('Data loading failed:', err);
             this.$message.error('数据加载失败');
@@ -860,16 +858,18 @@
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-        // 添加键盘事件监听
-        window.addEventListener('keydown', e => {
-          if (e.key === 'Control') this.isCtrlPressed = true;
-        });
-        window.addEventListener('keyup', e => {
-          if (e.key === 'Control') this.isCtrlPressed = false;
-        });
+        // 添加全局事件监听
+        document.addEventListener('keydown', this.handleKeyDown);
+        document.addEventListener('keyup', this.handleKeyUp);
+        // 添加全局鼠标事件监听，确保拖拽结束时重置状态
+        document.addEventListener('mouseup', this.handleMouseUp);
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
+        // 清理事件监听
+        document.removeEventListener('keydown', this.handleKeyDown);
+        document.removeEventListener('keyup', this.handleKeyUp);
+        document.removeEventListener('mouseup', this.handleMouseUp);
       }
     });
   </script>
