@@ -312,18 +312,18 @@
             <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
             <div class="actions">
               <el-tooltip content="文件类型" placement="bottom">
-                <el-dropdown @command="switchMediaType" :hide-on-click="false">
+                <el-dropdown @command="switchFileType" :hide-on-click="false">
                   <span class="el-dropdown-link">
-                    <i :class="mediaTypeIcon"></i>
+                    <i :class="fileTypeIcon"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'image' }">
+                    <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': fileType === 'image' }">
                       <i class="fas fa-image"></i> 图片
                     </el-dropdown-item>
-                    <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'video' }">
+                    <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': fileType === 'video' }">
                       <i class="fas fa-video"></i> 视频
                     </el-dropdown-item>
-                    <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'audio' }">
+                    <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': fileType === 'audio' }">
                       <i class="fas fa-music"></i> 音频
                     </el-dropdown-item>
                   </el-dropdown-menu>
@@ -370,16 +370,15 @@
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
                 <!-- 根据文件类型显示不同的媒体元素 -->
-                <template v-if="mediaType === 'image'">
+                <template v-if="fileType === 'image'">
                   <el-image
                     :src="'/file/' + item.name"
                     :preview-src-list="['/file/' + item.name]"
                     fit="cover"
                     lazy="true"
                   ></el-image>
-
                 </template>
-                <template v-else-if="mediaType === 'video'">
+                <template v-else-if="fileType === 'video'">
                   <video
                     :src="'/file/' + item.name"
                     controls
@@ -389,7 +388,6 @@
                 <template v-else>
                   <audio :src="'/file/' + item.name" controls></audio>
                 </template>
-
                 <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
@@ -437,7 +435,7 @@
         selectedFiles: [],
         sortOption: 'dateDesc',
         showFavorites: false,
-        mediaType: 'image',
+        fileType: 'image',
       },
       computed: {
         filteredTableData() {
@@ -445,12 +443,12 @@
             const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
             const matchesFavorites = !this.showFavorites || data.metadata.liked;
             const extension = data.name.split('.').pop().toLowerCase();
-            const mediaTypes = {
+            const fileTypes = {
               'image': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico'],
               'video': ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
               'audio': ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
             }
-            return matchesSearch && matchesFavorites && mediaTypes[this.mediaType].includes(extension);
+            return matchesSearch && matchesFavorites && fileTypes[this.fileType].includes(extension);
           });
         },
         paginatedTableData() {
@@ -462,9 +460,9 @@
         sortIcon() {
           return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
         },
-        mediaTypeIcon() {
-          return this.mediaType === 'image' ? 'fas fa-image' :
-                 this.mediaType === 'video' ? 'fas fa-video' : 'fas fa-music';
+        fileTypeIcon() {
+          return this.fileType === 'image' ? 'fas fa-image' :
+                 this.fileType === 'video' ? 'fas fa-video' : 'fas fa-music';
         }
       },
       watch: {
@@ -517,7 +515,7 @@
           const oversizedFiles = [];
 
           Array.from(files).forEach(file => {
-            const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+            const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/') || file.type.startsWith('audio/');
             const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
 
             if (!isValidType) {
@@ -832,17 +830,17 @@
             }
           });
         },
-        switchMediaType(type) {
-          this.mediaType = type;
+        switchFileType(type) {
+          this.fileType = type;
           this.currentPage = 1;
-          localStorage.setItem('mediaType', type);
+          localStorage.setItem('fileType', type);
           this.$message({
-            message: `已切换为 ${this.getMediaTypeName(type)} 模式`,
+            message: `已切换为 ${this.getFileTypeName(type)} 模式`,
             type: 'success',
             duration: 1500
           });
         },
-        getMediaTypeName(type) {
+        getFileTypeTypeName(type) {
           return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
         }
       },
@@ -876,9 +874,9 @@
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
         // 恢复用户偏好的文件类型
-        const savedMediaType = localStorage.getItem('mediaType');
-        if (savedMediaType) {
-          this.switchMediaType(savedMediaType);
+        const savedFileType = localStorage.getItem('fileType');
+        if (savedFileType) {
+          this.switchFileType(savedFileType);
         }
       },
       beforeDestroy() {
