@@ -10,7 +10,7 @@ export async function onRequestPost(context) {
 
         await errorHandling(context);
         telemetryData(context);
-        
+
         const uploadFile = formData.get('file');
         if (!uploadFile) {
             throw new Error('No file uploaded');

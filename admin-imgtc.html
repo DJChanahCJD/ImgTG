@@ -369,12 +369,27 @@
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <el-image
-                  :src="'/file/' + item.name"
-                  :preview-src-list="['/file/' + item.name]"
-                  fit="cover"
-                  lazy="true"
+                <!-- 根据文件类型显示不同的媒体元素 -->
+                <template v-if="mediaType === 'image'">
+                  <el-image
+                    :src="'/file/' + item.name"
+                    :preview-src-list="['/file/' + item.name]"
+                    fit="cover"
+                    lazy="true"
                   ></el-image>
+
+                </template>
+                <template v-else-if="mediaType === 'video'">
+                  <video
+                    :src="'/file/' + item.name"
+                    controls
+                    style="width: 100%; height: 100%; object-fit: cover;"
+                  ></video>
+                </template>
+                <template v-else>
+                  <audio :src="'/file/' + item.name" controls></audio>
+                </template>
+
                 <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
