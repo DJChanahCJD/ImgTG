@@ -336,22 +336,37 @@
         align-items: center;
         justify-content: center;
         transition: all 0.2s ease;
+        flex-shrink: 0;
       }
 
       .play-btn:hover {
         background: #9575CD;
-        transform: scale(1.05);
       }
 
-      .progress-wrapper {
+      .player-content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
+        min-width: 0; /* 确保文本可以正确截断 */
+      }
+
+      .file-name {
+        font-size: 13px;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .progress-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .progress-bar {
-        width: 100%;
+        flex: 1;
         height: 4px;
         background: rgba(0, 0, 0, 0.1);
         border-radius: 2px;
@@ -362,7 +377,7 @@
       .progress {
         position: absolute;
         height: 100%;
-        background: #B39DDB;
+        background: #fff;
         border-radius: 2px;
         transition: width 0.1s linear;
       }
@@ -370,7 +385,8 @@
       .time-display {
         font-size: 12px;
         color: #666;
-        text-align: right;
+        white-space: nowrap;
+        min-width: 85px; /* 确保时间显示不会被截断 */
       }
 
       /* 移动端适配 */
@@ -502,12 +518,15 @@
                       <button class="play-btn" @click.stop="togglePlay(index)">
                         <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
                       </button>
-                      <div class="progress-wrapper">
-                        <div class="progress-bar" @click.stop="seekAudio($event, index)">
-                          <div class="progress" :style="{ width: getProgress(index) + '%' }"></div>
-                        </div>
-                        <div class="time-display">
-                          {{ getCurrentTime(index) }} / {{ getDuration(index) }}
+                      <div class="player-content">
+                        <div class="file-name" :title="item.name">{{ item.name }}</div>
+                        <div class="progress-row">
+                          <div class="progress-bar" @click.stop="seekAudio($event, index)">
+                            <div class="progress" :style="{ width: getProgress(index) + '%' }"></div>
+                          </div>
+                          <div class="time-display">
+                            {{ getCurrentTime(index) }} / {{ getDuration(index) }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -562,7 +581,6 @@
         sortOption: 'dateDesc',
         showFavorites: false,
         fileType: 'image',
-        audioStates: {}, // 存储音频状态
       },
       computed: {
         filteredTableData() {
@@ -974,62 +992,44 @@
           return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
         },
         togglePlay(index) {
-          const audio = this.$refs[`audio-${index}`][0];
-          if (!audio) return;
-
+          const audio = this.$refs['audio-' + index];
           if (audio.paused) {
-            // 暂停其他正在播放的音频
-            Object.keys(this.$refs).forEach(key => {
-              if (key.startsWith('audio-') && key !== `audio-${index}`) {
-                this.$refs[key][0].pause();
-              }
-            });
             audio.play();
           } else {
             audio.pause();
           }
         },
-        isPlaying(index) {
-          const audio = this.$refs[`audio-${index}`]?.[0];
-          return audio ? !audio.paused : false;
+        initAudio(event, index) {
+          const audio = this.$refs['audio-' + index];
+          this.duration = audio.duration;
         },
         updateProgress(event, index) {
-          const audio = event.target;
-          this.$set(this.audioStates, `currentTime-${index}`, audio.currentTime);
-        },
-        getProgress(index) {
-          const currentTime = this.audioStates[`currentTime-${index}`] || 0;
-          const audio = this.$refs[`audio-${index}`]?.[0];
-          if (!audio) return 0;
-          return (currentTime / audio.duration) * 100 || 0;
-        },
-        getCurrentTime(index) {
-          const time = this.audioStates[`currentTime-${index}`] || 0;
-          return this.formatTime(time);
-        },
-        getDuration(index) {
-          return this.audioStates[`duration-${index}`] || '0:00';
-        },
-        formatTime(seconds) {
-          const mins = Math.floor(seconds / 60);
-          const secs = Math.floor(seconds % 60);
-          return `${mins}:${secs.toString().padStart(2, '0')}`;
-        },
-        seekAudio(event, index) {
-          const audio = this.$refs[`audio-${index}`][0];
-          if (!audio) return;
-
-          const rect = event.currentTarget.getBoundingClientRect();
-          const percent = (event.clientX - rect.left) / rect.width;
-          audio.currentTime = percent * audio.duration;
+          const audio = this.$refs['audio-' + index];
+          this.currentTime = audio.currentTime;
         },
         onAudioEnded(index) {
-          this.$set(this.audioStates, `currentTime-${index}`, 0);
+          this.currentTime = 0;
         },
-        initAudio(event, index) {
-          const audio = event.target;
-          this.$set(this.audioStates, `duration-${index}`, this.formatTime(audio.duration));
+        getCurrentTime(index) {
+          const audio = this.$refs['audio-' + index];
+          return Math.floor(audio.currentTime);
         },
+        getDuration(index) {
+          const audio = this.$refs['audio-' + index];
+          return Math.floor(audio.duration);
+        },
+        getProgress(index) {
+          const audio = this.$refs['audio-' + index];
+          return (audio.currentTime / audio.duration) * 100;
+        },
+        seekAudio(event, index) {
+          const audio = this.$refs['audio-' + index];
+          const rect = event.target.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const width = rect.width;
+          const seekTime = (x / width) * audio.duration;
+          audio.currentTime = seekTime;
+        }
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
@@ -1068,16 +1068,6 @@
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
-        // 清理音频资源
-        Object.keys(this.$refs).forEach(key => {
-          if (key.startsWith('audio-')) {
-            const audio = this.$refs[key][0];
-            if (audio) {
-              audio.pause();
-              audio.src = '';
-            }
-          }
-        });
       }
     });
   </script>
