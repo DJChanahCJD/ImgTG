@@ -388,6 +388,94 @@
         50% { transform: scale(1.1); }
         100% { transform: scale(1); }
       }
+
+      /* 音频卡片样式 */
+      .audio-card {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.3s ease;
+        border: none;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .audio-card:hover {
+        transform: scale(1.02);
+        cursor: pointer;
+      }
+
+      /* 继承原有的收藏图标、复选框和悬浮操作样式 */
+      .audio-card .collect-icon {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+      }
+
+      .audio-card .el-checkbox {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+      }
+
+      .audio-card .audio-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .audio-card:hover .audio-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* 播放器样式 */
+      .audio-player {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: linear-gradient(145deg, rgba(179, 157, 219, 0.1), rgba(255, 255, 255, 0.1));
+      }
+
+      /* 文件信息样式 */
+      .file-info {
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* 适配移动端 */
+      @media (max-width: 768px) {
+        .audio-card {
+          aspect-ratio: unset;
+          min-height: 180px;
+        }
+
+        .audio-player {
+          padding: 15px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -459,41 +547,57 @@
         <el-main class="main-container">
           <div class="content">
             <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
-                <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                  <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
-                </span>
-                <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <!-- 根据文件类型显示不同的媒体元素 -->
-                <template v-if="fileType === 'image'">
-                  <el-image
-                    :src="'/file/' + item.name"
-                    :preview-src-list="['/file/' + item.name]"
-                    fit="cover"
-                    lazy="true"
-                  ></el-image>
-                </template>
-                <template v-else-if="fileType === 'video'">
-                  <video
-                    :src="'/file/' + item.name"
-                    controls
-                    style="width: 100%; height: 100%; object-fit: cover;"
-                  ></video>
-                </template>
-                <template v-else>
-                  <audio-player
-                    :src="'/file/' + item.name"
-                    :file-name="item.name"
-                  ></audio-player>
-                </template>
-                <div class="image-overlay">
-                  <div class="overlay-buttons">
-                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                    <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+              <!-- 音频文件使用音频播放器组件 -->
+              <template v-if="getFileType(item.name) === 'audio'">
+                <audio-player
+                  :src="'/file/' + item.name"
+                  :file-name="item.name"
+                  :metadata="item.metadata"
+                  :selected="item.selected"
+                  @toggle-like="toggleLike(index, item.name)"
+                  @copy="handleCopy(index, item.name)"
+                  @delete="handleDelete(index, item.name)"
+                  @select="item.selected = !item.selected"
+                ></audio-player>
+              </template>
+              <!-- 其他类型文件使用原有的卡片样式 -->
+              <template v-else>
+                <el-card>
+                  <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                    <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+                  </span>
+                  <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+                  <!-- 根据文件类型显示不同的媒体元素 -->
+                  <template v-if="fileType === 'image'">
+                    <el-image
+                      :src="'/file/' + item.name"
+                      :preview-src-list="['/file/' + item.name]"
+                      fit="cover"
+                      lazy="true"
+                    ></el-image>
+                  </template>
+                  <template v-else-if="fileType === 'video'">
+                    <video
+                      :src="'/file/' + item.name"
+                      controls
+                      style="width: 100%; height: 100%; object-fit: cover;"
+                    ></video>
+                  </template>
+                  <template v-else>
+                    <audio-player
+                      :src="'/file/' + item.name"
+                      :file-name="item.name"
+                    ></audio-player>
+                  </template>
+                  <div class="image-overlay">
+                    <div class="overlay-buttons">
+                      <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                      <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                    </div>
                   </div>
-                </div>
-                <div class="file-info">{{ item.name }}</div>
-              </el-card>
+                  <div class="file-info">{{ item.name }}</div>
+                </el-card>
+              </template>
             </template>
           </div>
           <div class="pagination-container">
@@ -524,33 +628,45 @@
     // 注册音频播放器组件
     Vue.component('audio-player', {
       template: `
-        <div class="audio-player" :class="{ 'is-playing': isPlaying }">
-          <div class="player-content">
-            <div class="player-info">
-              <i class="fas fa-music player-icon"></i>
-              <span class="file-name">{{ fileName }}</span>
-            </div>
-            <div class="player-controls">
-              <button class="play-btn" @click="togglePlay">
-                <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
-              </button>
-              <div class="progress-bar" @click="seek">
-                <div class="progress" :style="{ width: progress + '%' }"></div>
+        <div class="audio-card">
+          <span class="collect-icon" @click.stop="$emit('toggle-like')">
+            <i :class="metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+          </span>
+          <el-checkbox v-model="selected" @change="$emit('select')"></el-checkbox>
+
+          <div class="audio-player" :class="{ 'is-playing': isPlaying }">
+            <div class="player-content">
+              <div class="player-info">
+                <i class="fas fa-music player-icon"></i>
+                <span class="file-name" :title="fileName">{{ formatFileName }}</span>
               </div>
-              <span class="time">{{ currentTime }}/{{ duration }}</span>
+              <div class="player-controls">
+                <button class="play-btn" @click.stop="togglePlay">
+                  <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
+                </button>
+                <div class="progress-bar" @click.stop="seek">
+                  <div class="progress" :style="{ width: progress + '%' }"></div>
+                </div>
+                <span class="time">{{ currentTime }}/{{ duration }}</span>
+              </div>
             </div>
           </div>
+
+          <div class="audio-overlay">
+            <div class="overlay-buttons">
+              <el-button size="mini" type="primary" @click.stop="$emit('copy')">复制地址</el-button>
+              <el-button size="mini" type="danger" @click.stop="$emit('delete')">删除</el-button>
+            </div>
+          </div>
+
+          <div class="file-info">{{ fileName }}</div>
         </div>
       `,
       props: {
-        src: {
-          type: String,
-          required: true
-        },
-        fileName: {
-          type: String,
-          required: true
-        }
+        src: String,
+        fileName: String,
+        metadata: Object,
+        selected: Boolean
       },
       data() {
         return {
