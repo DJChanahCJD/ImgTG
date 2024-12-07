@@ -148,6 +148,7 @@ body {
   flex-grow: 1;
 }
 
+/* 图片卡片样式 */
 .image-card {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -166,7 +167,6 @@ body {
   cursor: pointer;
 }
 
-/* 修改 checkbox 的样式 */
 .image-card .el-checkbox {
   position: absolute;
   top: 10px;
@@ -298,23 +298,10 @@ body {
   align-items: center;
   max-height: 256px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  cursor: default;
 }
 .audio-card.selected {
   box-shadow: 0 0 0 2px #8a4bff, 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-.select-indicator {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  background: #8a4bff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
 }
 
 .audio-content {
@@ -379,7 +366,9 @@ body {
   border-radius: 2px;
   cursor: pointer;
   margin-bottom: 8px;
-  touch-action: none; /* 防止移动端滑动冲突 */
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .progress-handle {
@@ -400,6 +389,10 @@ body {
 .progress-bar.dragging .progress-handle {
   opacity: 1;
   transform: scale(1.2) translate(-50%, -50%);
+}
+.progress-current,
+.progress-handle {
+  pointer-events: none;
 }
 
 .progress-track {
