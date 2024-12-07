@@ -58,13 +58,13 @@
             <el-tooltip content="筛选" placement="bottom">
               <el-dropdown @command="filter" :hide-on-click="false">
                 <span class="el-dropdown-link">
-                  <i class="fas fa-filter"></i>
+                  <i :class="filterIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }" @click="showAll">全部</el-dropdown-item>
-                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }" @click="showFavorites">收藏</el-dropdown-item>
-                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }" @click="showBlocked">黑名单</el-dropdown-item>
-                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }" @click="showUnblocked">白名单</el-dropdown-item>
+                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }">全部</el-dropdown-item>
+                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }">收藏</el-dropdown-item>
+                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }">黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }">白名单</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -235,8 +235,6 @@
       selectedFiles: [],
       sortOption: 'dateDesc',
       filterOption: 'all',
-      showFavorites: false,
-      showBlocked: false,
       fileType: 'image',
       hoveredIndex: null,
       isDragging: false,
@@ -248,11 +246,11 @@
       filteredTableData() {
         return this.tableData.filter(data => {
           const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
-          const matchesFavorites = !this.showFavorites || data.metadata.liked;
 
-          // 添加黑白名单筛选逻辑
+          // 筛选
           const matchesFilter =
             this.filterOption === 'all' ? true :
+            this.filterOption === 'favorites' ? data.metadata.liked :
             this.filterOption === 'blocked' ? data.metadata.ListType === 'Block' :
             this.filterOption === 'unblocked' ? data.metadata.ListType === 'White' :
             true;
@@ -274,6 +272,12 @@
       },
       sortIcon() {
         return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+      },
+      filterIcon() {
+        return this.filterOption === 'all' ? 'fas fa-filter' :
+        this.filterOption === 'favorites' ? 'fas fa-heart' :
+        this.filterOption === 'blocked' ? 'fas fa-lock' :
+        this.filterOption === 'unblocked' ? 'fas fa-unlock' : '';
       },
       fileTypeIcon() {
         return this.fileType === 'image' ? 'fas fa-image' :
@@ -663,6 +667,14 @@
       sortData(data) {
         return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
           data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
+      },
+      handleBatchOperation(command) {
+        switch (command) {
+          case 'copy': this.handleBatchCopy(); break;
+          case 'delete': this.handleBatchDelete(); break;
+          case 'block': this.handleBatchBlock(); break;
+          case 'unblock': this.handleBatchUnblock(); break;
+        }
       },
       checkBrokenImages() {
         const loadingMessage = this.$message({
