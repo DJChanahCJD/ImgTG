@@ -113,12 +113,7 @@
                      :class="{ 'selected': item.selected, 'hovering': hoveredIndex === index }"
                      @mouseenter="hoveredIndex = index"
                      @mouseleave="hoveredIndex = null">
-              <!-- 添加复选框 -->
-              <el-checkbox v-model="item.selected"
-                           v-show="hoveredIndex === index || item.selected"
-                           class="audio-checkbox"
-                           @click.stop>
-              </el-checkbox>
+              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index" class="audio-checkbox"></el-checkbox>
 
               <!-- 音频内容区域 -->
               <div class="audio-content">
