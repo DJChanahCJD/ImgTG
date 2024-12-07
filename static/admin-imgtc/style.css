@@ -297,6 +297,7 @@ body {
   justify-content: center;
   align-items: center;
   max-height: 256px;
+  max-width: 512px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 

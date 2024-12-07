@@ -153,10 +153,10 @@
                 <!-- 控制按钮区 -->
                 <div class="audio-controls">
                   <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
-                    <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
+                    <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'" style="scale: 1.2;"></i>
                   </button>
                   <button class="control-btn" @click.stop="toggleSelect(index, item.name)">
-                    <i :class="item.selected ? 'fas fa-square-check' : 'far fa-square'"></i>
+                    <i :class="item.selected ? 'fas fa-square-check' : 'far fa-square'" style="scale: 1.2;"></i>
                   </button>
                   <!-- 播放按钮 -->
                   <button class="play-btn" @click.stop="togglePlay(index)">
