@@ -581,6 +581,7 @@
         sortOption: 'dateDesc',
         showFavorites: false,
         fileType: 'image',
+        audioStates: {}, // 用于存储音频状态
       },
       computed: {
         filteredTableData() {
@@ -992,7 +993,19 @@
           return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
         },
         togglePlay(index) {
-          const audio = this.$refs['audio-' + index];
+          const audio = this.$refs[`audio-${index}`]?.[0];
+          if (!audio) return;
+
+          // 暂停其他正在播放的音频
+          Object.keys(this.$refs).forEach(key => {
+            if (key.startsWith('audio-') && key !== `audio-${index}`) {
+              const otherAudio = this.$refs[key][0];
+              if (otherAudio && !otherAudio.paused) {
+                otherAudio.pause();
+              }
+            }
+          });
+
           if (audio.paused) {
             audio.play();
           } else {
@@ -1000,35 +1013,41 @@
           }
         },
         initAudio(event, index) {
-          const audio = this.$refs['audio-' + index];
-          this.duration = audio.duration;
+          const audio = event.target;
+          this.$set(this.audioStates, `duration-${index}`, this.formatTime(audio.duration));
         },
         updateProgress(event, index) {
-          const audio = this.$refs['audio-' + index];
-          this.currentTime = audio.currentTime;
+          const audio = event.target;
+          this.$set(this.audioStates, `currentTime-${index}`, audio.currentTime);
         },
         onAudioEnded(index) {
-          this.currentTime = 0;
+          this.$set(this.audioStates, `currentTime-${index}`, 0);
         },
         getCurrentTime(index) {
-          const audio = this.$refs['audio-' + index];
-          return Math.floor(audio.currentTime);
+          const time = this.audioStates[`currentTime-${index}`] || 0;
+          return this.formatTime(time);
         },
         getDuration(index) {
-          const audio = this.$refs['audio-' + index];
-          return Math.floor(audio.duration);
+          return this.audioStates[`duration-${index}`] || '0:00';
         },
         getProgress(index) {
-          const audio = this.$refs['audio-' + index];
-          return (audio.currentTime / audio.duration) * 100;
+          const currentTime = this.audioStates[`currentTime-${index}`] || 0;
+          const audio = this.$refs[`audio-${index}`]?.[0];
+          if (!audio) return 0;
+          return (currentTime / audio.duration) * 100 || 0;
         },
         seekAudio(event, index) {
-          const audio = this.$refs['audio-' + index];
-          const rect = event.target.getBoundingClientRect();
-          const x = event.clientX - rect.left;
-          const width = rect.width;
-          const seekTime = (x / width) * audio.duration;
-          audio.currentTime = seekTime;
+          const audio = this.$refs[`audio-${index}`]?.[0];
+          if (!audio) return;
+
+          const rect = event.currentTarget.getBoundingClientRect();
+          const percent = (event.clientX - rect.left) / rect.width;
+          audio.currentTime = percent * audio.duration;
+        },
+        formatTime(seconds) {
+          const mins = Math.floor(seconds / 60);
+          const secs = Math.floor(seconds % 60);
+          return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
       },
       mounted() {
@@ -1068,6 +1087,16 @@
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
+        // 清理音频资源
+        Object.keys(this.$refs).forEach(key => {
+          if (key.startsWith('audio-')) {
+            const audio = this.$refs[key][0];
+            if (audio) {
+              audio.pause();
+              audio.src = '';
+            }
+          }
+        });
       }
     });
   </script>
