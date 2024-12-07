@@ -156,7 +156,7 @@
                   <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
                     <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
                   </button>
-                  <button class="control-btn" @click.stop="toggleSelect(index)">
+                  <button class="control-btn" @click.stop="toggleSelect(index, item.name)">
                     <i :class="item.selected ? 'fas fa-check' : 'far fa-square'"></i>
                   </button>
                   <button class="control-btn" @click.stop="handleCopy(index, item.name)">
@@ -183,10 +183,6 @@
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
-              </div>
-              <!-- 选中指示器 -->
-              <div class="select-indicator" v-if="item.selected">
-                <i class="fas fa-check"></i>
               </div>
               <audio
                 :ref="'audio-' + index"
@@ -308,8 +304,10 @@
         this.windowWidth = window.innerWidth;
         this.calculatePageSize();
       },
-      toggleSelect(index) {
-        this.tableData[index].selected = !this.tableData[index].selected;
+      toggleSelect(index, name) {
+        const fileIndex = this.tableData.findIndex(file => file.name === name);
+        this.tableData[fileIndex].selected = !this.tableData[fileIndex].selected;
+        this.tableData.map(file => file.selected = false);
       },
       startDragging(event, index) {
         event.preventDefault();
