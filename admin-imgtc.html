@@ -293,16 +293,6 @@
         .el-card__body{padding: 0;}
         .search-card {display: none;}
       }
-
-      .preview-media {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      video.preview-media {
-        background: #000;
-      }
     </style>
   </head>
   <body>
@@ -321,6 +311,24 @@
             </el-tooltip>
             <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
             <div class="actions">
+              <el-tooltip content="文件类型" placement="bottom">
+                <el-dropdown @command="switchMediaType" :hide-on-click="false">
+                  <span class="el-dropdown-link">
+                    <i :class="mediaTypeIcon"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'image' }">
+                      <i class="fas fa-image"></i> 图片
+                    </el-dropdown-item>
+                    <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'video' }">
+                      <i class="fas fa-video"></i> 视频
+                    </el-dropdown-item>
+                    <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': mediaType === 'audio' }">
+                      <i class="fas fa-music"></i> 音频
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </el-tooltip>
               <el-tooltip content="排序" placement="bottom">
                 <el-dropdown @command="sort" :hide-on-click="false">
                   <span class="el-dropdown-link">
@@ -361,25 +369,11 @@
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-
-                <!-- 根据文件类型显示不同的预览 -->
-                <template v-if="isVideo(item.name)">
-                  <video
-                    class="preview-media"
-                    :src="'/file/' + item.name"
-                    controls
-                    preload="metadata"
-                    :poster="'/thumbnail/' + item.name"
-                    @click.stop
-                  ></video>
-                </template>
-                <template v-else>
-                  <el-image
-                    class="preview-media"
-                    :src="'/file/' + item.name"
-                    :preview-src-list="['/file/' + item.name]"
-                    fit="cover"
-                    lazy="true"
+                <el-image
+                  :src="'/file/' + item.name"
+                  :preview-src-list="['/file/' + item.name]"
+                  fit="cover"
+                  lazy="true"
                   ></el-image>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
@@ -428,13 +422,20 @@
         selectedFiles: [],
         sortOption: 'dateDesc',
         showFavorites: false,
+        mediaType: 'image',
       },
       computed: {
         filteredTableData() {
           return this.tableData.filter(data => {
             const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
             const matchesFavorites = !this.showFavorites || data.metadata.liked;
-            return matchesSearch && matchesFavorites;
+            const extension = data.name.split('.').pop().toLowerCase();
+            const mediaTypes = {
+              'image': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico'],
+              'video': ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
+              'audio': ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
+            }
+            return matchesSearch && matchesFavorites && mediaTypes[this.mediaType].includes(extension);
           });
         },
         paginatedTableData() {
@@ -445,6 +446,10 @@
         },
         sortIcon() {
           return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+        },
+        mediaTypeIcon() {
+          return this.mediaType === 'image' ? 'fas fa-image' :
+                 this.mediaType === 'video' ? 'fas fa-video' : 'fas fa-music';
         }
       },
       watch: {
@@ -812,10 +817,19 @@
             }
           });
         },
-        isVideo(filename) {
-          const videoExtensions = ['.mp4', '.webm', '.ogg'];
-          return videoExtensions.some(ext => filename.toLowerCase().endsWith(ext));
+        switchMediaType(type) {
+          this.mediaType = type;
+          this.currentPage = 1;
+          localStorage.setItem('mediaType', type);
+          this.$message({
+            message: `已切换为 ${this.getMediaTypeName(type)} 模式`,
+            type: 'success',
+            duration: 1500
+          });
         },
+        getMediaTypeName(type) {
+          return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
+        }
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
@@ -845,6 +859,12 @@
             this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+        // 恢复用户偏好的文件类型
+        const savedMediaType = localStorage.getItem('mediaType');
+        if (savedMediaType) {
+          this.switchMediaType(savedMediaType);
+        }
       },
       beforeDestroy() {
         window.removeEventListener('resize', this.calculatePageSize);
