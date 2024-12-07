@@ -109,8 +109,8 @@
               <div class="card-footer">{{ item.name }}</div>
             </el-card>
             <el-card v-else class="audio-card"
-                     style="border-radius: 16px;"
-                     :class="{ 'selected': item.selected }"
+              :class="{ 'selected': item.selected }"
+              style="border-radius: 16px;"
             >
 
               <!-- 音频内容区域 -->
@@ -159,7 +159,7 @@
                     <i :class="item.selected ? 'fas fa-square-check' : 'far fa-square'" style="scale: 1.2;"></i>
                   </button>
                   <!-- 播放按钮 -->
-                  <button class="play-btn" @click.stop="togglePlay(index)">
+                  <button class="control-btn play-btn" @click.stop="togglePlay(index)">
                     <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
                   </button>
                   <button class="control-btn" @click.stop="handleCopy(index, item.name)">

@@ -302,8 +302,12 @@ body {
 }
 
 /* 选中状态样式 */
-.audio-card.selected, .audio-card:hover {
-  box-shadow: 0 0 0 2px #8a4bff, 0 8px 16px rgba(0, 0, 0, 0.1);
+.audio-card:hover {
+  transform: scale(1.02);
+}
+
+.audio-card.selected {
+  box-shadow: 0 0 0 4px #8a4bff;
 }
 
 .audio-content {
