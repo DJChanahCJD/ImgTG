@@ -59,23 +59,30 @@
               <el-dropdown @command="filter" :hide-on-click="false">
                 <span class="el-dropdown-link">
                   <i class="fas fa-filter"></i>
-                  <i class="fas fa-heart" :class="{ enabled: showFavorites }" @click="toggleFavorites" style="color: #FFD7E4;"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }">全部</el-dropdown-item>
-                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }">收藏</el-dropdown-item>
-                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }">禁用</el-dropdown-item>
+                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }" @click="showAll">全部</el-dropdown-item>
+                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }" @click="showFavorites">收藏</el-dropdown-item>
+                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }" @click="showBlocked">黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }" @click="showUnblocked">白名单</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
             <el-tooltip content="全选当前页" placement="bottom">
               <i class="fas fa-check-square" @click="selectAllInPage"></i>
             </el-tooltip>
-            <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-            </el-tooltip>
-            <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+            <el-tooltip content="批量操作" placement="bottom">
+              <el-dropdown>
+                <span class="el-dropdown-link">
+                  <i class="fas fa-layer-group"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy">批量复制</el-dropdown-item>
+                  <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete">批量删除</el-dropdown-item>
+                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchBlock">批量加入黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchUnblock">批量加入白名单</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </el-tooltip>
             <el-tooltip content="检测失效图片" placement="bottom">
               <i class="fas fa-wrench" @click="checkBrokenImages"></i>
@@ -242,13 +249,21 @@
         return this.tableData.filter(data => {
           const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
           const matchesFavorites = !this.showFavorites || data.metadata.liked;
+
+          // 添加黑白名单筛选逻辑
+          const matchesFilter =
+            this.filterOption === 'all' ? true :
+            this.filterOption === 'blocked' ? data.metadata.ListType === 'Block' :
+            this.filterOption === 'unblocked' ? data.metadata.ListType === 'White' :
+            true;
+
           const extension = data.name.split('.').pop().toLowerCase();
           const fileTypes = {
             'image': ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico'],
             'video': ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
             'audio': ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
           }
-          return matchesSearch && matchesFavorites && fileTypes[this.fileType].includes(extension);
+          return matchesSearch && matchesFavorites && matchesFilter && fileTypes[this.fileType].includes(extension);
         });
       },
       paginatedTableData() {
@@ -629,7 +644,7 @@
             });
           });
       },
-      toggleFavorites() { // 筛选收藏图片
+      showFavorites() { // 筛选收藏图片
         this.showFavorites = !this.showFavorites;
         this.currentPage = 1;
 
@@ -772,6 +787,98 @@
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
       },
+      // 批量加入黑名单
+      handleBatchBlock() {
+        if (this.selectedFiles.length === 0) {
+          this.$message.warning('请先选择文件');
+          return;
+        }
+
+        this.$confirm(`确定要将这 ${this.selectedFiles.length} 个文件加入黑名单吗?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const promises = this.selectedFiles.map(file =>
+            fetch(`./api/manage/block/${file.name}`, {
+              method: 'GET',
+              credentials: 'include'
+            })
+          );
+
+          Promise.all(promises)
+            .then(responses => {
+              responses.forEach((response, index) => {
+                if (response.ok) {
+                  const fileIndex = this.tableData.findIndex(item => item.name === this.selectedFiles[index].name);
+                  if (fileIndex !== -1) {
+                    this.tableData[fileIndex].metadata.ListType = 'Block';
+                  }
+                }
+              });
+              this.$message.success('批量加入黑名单成功');
+              this.selectedFiles = [];
+            })
+            .catch(() => this.$message.error('操作失败，请检查网络连接'));
+        });
+      },
+
+      // 批量加入白名单
+      handleBatchUnblock() {
+        if (this.selectedFiles.length === 0) {
+          this.$message.warning('请先选择文件');
+          return;
+        }
+
+        this.$confirm(`确定要将这 ${this.selectedFiles.length} 个文件加入白名单吗?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const promises = this.selectedFiles.map(file =>
+            fetch(`./api/manage/white/${file.name}`, {
+              method: 'GET',
+              credentials: 'include'
+            })
+          );
+
+          Promise.all(promises)
+            .then(responses => {
+              responses.forEach((response, index) => {
+                if (response.ok) {
+                  const fileIndex = this.tableData.findIndex(item => item.name === this.selectedFiles[index].name);
+                  if (fileIndex !== -1) {
+                    this.tableData[fileIndex].metadata.ListType = 'White';
+                  }
+                }
+              });
+              this.$message.success('批量加入白名单成功');
+              this.selectedFiles = [];
+            })
+            .catch(() => this.$message.error('操作失败，请检查网络连接'));
+        });
+      },
+
+      // 筛选方法
+      filter(command) {
+        this.filterOption = command;
+        this.currentPage = 1;
+      },
+
+      showAll() {
+        this.filterOption = 'all';
+        this.currentPage = 1;
+      },
+
+      showBlocked() {
+        this.filterOption = 'blocked';
+        this.currentPage = 1;
+      },
+
+      showUnblocked() {
+        this.filterOption = 'unblocked';
+        this.currentPage = 1;
+      }
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
