@@ -186,7 +186,7 @@
         opacity: 0.8;
       }
 
-      .file-info {
+      .card-footer {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -368,7 +368,7 @@
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <template style="display: flex; align-items: center; justify-content: center;">
+                <template style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
                   <!-- 根据文件类型显示不同的媒体元素 -->
                   <template v-if="fileType === 'image'">
                     <el-image
@@ -396,7 +396,7 @@
                     <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                   </div>
                 </div>
-                <div class="file-info">{{ item.name }}</div>
+                <div class="card-footer">{{ item.name }}</div>
               </el-card>
             </template>
           </div>
