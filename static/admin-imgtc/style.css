@@ -495,8 +495,11 @@ body {
   color: white;
 }
 
-.like-btn .liked, .control-btn.selected {
+.like-btn, .select-btn {
   scale: 1.2;
+}
+
+.like-btn .liked, .select-btn.selected {
   color: #FFD7E4;
 }
 
