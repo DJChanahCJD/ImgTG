@@ -276,6 +276,9 @@
       selectedFiles() {
         return this.tableData.filter(file => this.selectedFileNames.has(file.name));
       },
+      isSelected() {
+        return (fileName) => this.selectedFileNames.has(fileName);
+      },
     },
     watch: {
       tableData: {
@@ -704,18 +707,19 @@
           }
         });
       },
+      getFileTypeName(type) {
+        return type === 'image' ? '图片' :
+               type === 'video' ? '视频' : '音频';
+      },
       switchFileType(type) {
         this.fileType = type;
         this.currentPage = 1;
         localStorage.setItem('fileType', type);
         this.$message({
-          message: `已切换为 ${this.getFileTypeName(type)} 模式`,
+          message: `已切换为${this.getFileTypeName(type)}模式`,
           type: 'success',
           duration: 1500
         });
-      },
-      getFileTypeTypeName(type) {
-        return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
       },
       isPlaying(index) {
         const audio = this.$refs[`audio-${index}`]?.[0];
