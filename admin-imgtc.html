@@ -110,9 +110,8 @@
             </el-card>
             <el-card v-else class="audio-card"
                      style="border-radius: 16px;"
-                     :class="{ 'selected': item.selected, 'hovering': hoveredIndex === index }"
-                     @mouseenter="hoveredIndex = index"
-                     @mouseleave="hoveredIndex = null">
+                     :class="{ 'selected': item.selected }"
+            >
 
               <!-- 音频内容区域 -->
               <div class="audio-content">
@@ -157,28 +156,15 @@
                     <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
                   </button>
                   <button class="control-btn" @click.stop="toggleSelect(index, item.name)">
-                    <i :class="item.selected ? 'fas fa-check' : 'far fa-square'"></i>
-                  </button>
-                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
-                    <i class="fas fa-link"></i>
+                    <i :class="item.selected ? 'fas fa-square-check' : 'far fa-square'"></i>
                   </button>
                   <!-- 播放按钮 -->
                   <button class="play-btn" @click.stop="togglePlay(index)">
                     <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
                   </button>
-                  <div class="volume-control">
-                    <button class="control-btn" @click.stop="toggleMute(index)">
-                      <i :class="isMuted(index) ? 'fas fa-volume-mute' : 'fas fa-volume-up'"></i>
-                    </button>
-                    <div class="volume-slider" @click.stop>
-                      <input type="range"
-                             min="0"
-                             max="1"
-                             step="0.1"
-                             :value="getVolume(index)"
-                             @input="updateVolume($event, index)">
-                    </div>
-                  </div>
+                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
+                    <i class="fas fa-link"></i>
+                  </button>
                   <button class="control-btn" @click.stop="handleDelete(index, item.name)">
                     <i class="fas fa-trash-alt"></i>
                   </button>
@@ -307,7 +293,6 @@
       toggleSelect(index, name) {
         const fileIndex = this.tableData.findIndex(file => file.name === name);
         this.tableData[fileIndex].selected = !this.tableData[fileIndex].selected;
-        this.tableData.map(file => file.selected = false);
       },
       startDragging(event, index) {
         event.preventDefault();
@@ -634,7 +619,7 @@
         this.currentPage = 1;
 
         this.$message({
-          message: this.showFavorites ? '已筛选收藏图片' : '显示全部图片',
+          message: (this.showFavorites ? '显示收藏' : '显示所有') + this.getFileTypeName(this.fileType),
           type: 'success',
           duration: 1500
         });
@@ -771,29 +756,6 @@
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
-      },
-      toggleMute(index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return;
-
-        audio.muted = !audio.muted;
-        this.$set(this.audioStates, `muted-${index}`, audio.muted);
-      },
-      isMuted(index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        return audio ? audio.muted : false;
-      },
-      getVolume(index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        return audio ? audio.volume : 1;
-      },
-      updateVolume(event, index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return;
-
-        audio.volume = event.target.value;
-        audio.muted = false;
-        this.$set(this.audioStates, `volume-${index}`, audio.volume);
       },
     },
     mounted() {

@@ -298,9 +298,10 @@ body {
   align-items: center;
   max-height: 256px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  cursor: default;
 }
-.audio-card.selected {
+
+/* 选中状态样式 */
+.audio-card.selected, .audio-card:hover {
   box-shadow: 0 0 0 2px #8a4bff, 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -454,6 +455,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  z-index: 1; /* 确保按钮可点击 */
 }
 
 .control-btn:hover {
@@ -517,40 +519,4 @@ body {
     width: 42px;
     height: 42px;
   }
-}
-
-.volume-control {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.volume-slider {
-  width: 0;
-  overflow: hidden;
-  transition: width 0.3s ease;
-  margin-left: 4px;
-  margin-right: 4px;
-}
-
-.volume-control:hover .volume-slider {
-  width: 60px;
-}
-
-.volume-slider input[type="range"] {
-  width: 60px;
-  height: 4px;
-  -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  outline: none;
-}
-
-.volume-slider input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
 }
