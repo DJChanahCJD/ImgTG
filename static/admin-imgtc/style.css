@@ -221,8 +221,8 @@ body {
   pointer-events: none;
 }
 
-.el-card{
-  border: none;
+.el-card, .el-card__body{
+  border: none !important;
 }
 .el-card:hover .image-overlay {
   opacity: 1;

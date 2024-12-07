@@ -55,8 +55,18 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="收藏筛选" placement="bottom">
-              <i class="fas fa-heart" :class="{ enabled: showFavorites }" @click="toggleFavorites" style="color: #FFD7E4;"></i>
+            <el-tooltip content="筛选" placement="bottom">
+              <el-dropdown @command="filter" :hide-on-click="false">
+                <span class="el-dropdown-link">
+                  <i class="fas fa-filter"></i>
+                  <i class="fas fa-heart" :class="{ enabled: showFavorites }" @click="toggleFavorites" style="color: #FFD7E4;"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }">全部</el-dropdown-item>
+                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }">收藏</el-dropdown-item>
+                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }">禁用</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </el-tooltip>
             <el-tooltip content="全选当前页" placement="bottom">
               <i class="fas fa-check-square" @click="selectAllInPage"></i>
@@ -217,7 +227,9 @@
       pageSize: 15,
       selectedFiles: [],
       sortOption: 'dateDesc',
+      filterOption: 'all',
       showFavorites: false,
+      showBlocked: false,
       fileType: 'image',
       hoveredIndex: null,
       isDragging: false,
@@ -262,6 +274,9 @@
       },
       sortOption(newOption) {
         localStorage.setItem('sortOption', newOption);
+      },
+      filterOption(newOption) {
+        localStorage.setItem('filterOption', newOption);
       }
     },
     methods: {
