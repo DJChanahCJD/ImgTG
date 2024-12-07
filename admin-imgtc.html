@@ -125,14 +125,21 @@
                 <!-- 进度条 -->
                 <div class="audio-progress">
                   <div class="progress-bar"
-                       @click="seekAudio($event, index)"
                        @mousedown="startDragging($event, index)"
                        @mousemove="onDragging($event, index)"
                        @mouseup="stopDragging"
                        @mouseleave="stopDragging">
                     <div class="progress-track"></div>
-                    <div class="progress-current" :style="{ width: getProgress(index) + '%' }"></div>
-                    <div class="progress-handle" :style="{ left: getDraggingProgress(index) + '%' }"></div>
+                    <div class="progress-current"
+                         :style="{ width: isDragging && currentDraggingIndex === index ?
+                                  draggingProgress[index] + '%' :
+                                  getProgress(index) + '%' }">
+                    </div>
+                    <div class="progress-handle"
+                         :style="{ left: isDragging && currentDraggingIndex === index ?
+                                  draggingProgress[index] + '%' :
+                                  getProgress(index) + '%' }">
+                    </div>
                   </div>
                   <div class="time-display">
                     <span>{{ getCurrentTime(index) }}</span>
@@ -300,46 +307,29 @@
         event.preventDefault();
         this.isDragging = true;
         this.currentDraggingIndex = index;
-
-        // 初始化拖动进度
-        const progressBar = event.currentTarget;
-        const rect = progressBar.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const percent = (x / rect.width) * 100;
-        this.$set(this.draggingProgress, index, percent);
-
-        // 添加全局事件监听
-        document.addEventListener('mousemove', this.onDragging);
-        document.addEventListener('mouseup', this.stopDragging);
+        this.updateDraggingProgress(event);
       },
-      stopDragging(event) {
-        if (this.isDragging && this.currentDraggingIndex !== null) {
+      onDragging(event) {
+        if (this.isDragging) {
+          this.updateDraggingProgress(event);
+        }
+      },
+      updateDraggingProgress(event) {
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
+        const percent = (x / rect.width) * 100;
+        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
+      },
+      stopDragging() {
+        if (this.isDragging) {
           const audio = this.$refs[`audio-${this.currentDraggingIndex}`]?.[0];
           if (audio) {
-            // 更新实际播放进度
             const progress = this.draggingProgress[this.currentDraggingIndex] || 0;
             audio.currentTime = (progress / 100) * audio.duration;
           }
         }
-
         this.isDragging = false;
         this.currentDraggingIndex = null;
-        this.draggingProgress = {};
-
-        // 移除全局事件监听
-        document.removeEventListener('mousemove', this.onDragging);
-        document.removeEventListener('mouseup', this.stopDragging);
-      },
-      onDragging(event) {
-        if (!this.isDragging || this.currentDraggingIndex === null) return;
-
-        const progressBar = this.$refs[`audio-${this.currentDraggingIndex}`][0]
-          .parentElement.querySelector('.progress-bar');
-        const rect = progressBar.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-
-        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
       },
       handleUpload() {
         this.$refs.fileInput.click();
