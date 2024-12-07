@@ -392,97 +392,7 @@
       min-width: 85px; /* 确保时间显示不会被截断 */
     }
 
-    /* 移动端适配 */
-    @media (max-width: 768px) {
-      .custom-audio-player {
-        padding: 0 5px;
-      }
 
-      .play-btn {
-        min-width: 24px;
-        height: 24px;
-      }
-
-      .time-display {
-        font-size: 10px;
-      }
-    }
-
-    /* Plyr 自定义样式 */
-    .custom-audio-player {
-      padding: 8px 12px;
-    }
-
-    .custom-audio-player .file-name {
-      font-size: 13px;
-      color: #fff;
-      margin-bottom: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .plyr__container {
-      width: 100%;
-      height: 100%;
-      flex-shrink: 0;
-      --plyr-color-main: #B39DDB;
-      --plyr-audio-controls-background: transparent;
-      --plyr-audio-control-color: #fff;
-      --plyr-audio-control-color-hover: #9575CD;
-      --plyr-range-thumb-background: #B39DDB;
-      --plyr-range-fill-background: #B39DDB;
-      --plyr-audio-progress-buffered-background: rgba(179, 157, 219, 0.2);
-    }
-
-    /* 播放按钮样式 */
-    .plyr--audio .plyr__control[data-plyr="play"] {
-      background: #B39DDB;
-      color: white;
-      transition: all 0.2s ease;
-    }
-
-    .plyr--audio .plyr__control[data-plyr="play"]:hover {
-      background: #9575CD;
-      transform: scale(1.05);
-    }
-
-    /* 进度条样式 */
-    .plyr--full-ui input[type=range] {
-      height: 4px;
-    }
-
-    .plyr__progress input[type=range] {
-      cursor: pointer;
-    }
-
-    /* 时间显示样式 */
-    .plyr--audio .plyr__time {
-      font-size: 12px;
-      color: #fff;
-    }
-
-    /* 音量控制样式 */
-    .plyr--audio .plyr__volume {
-      max-width: 80px;
-    }
-
-    /* 移动端适配 */
-    @media (max-width: 768px) {
-      .custom-audio-player {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .custom-audio-player .file-name {
-        font-size: 12px;
-        margin-bottom: 6px;
-      }
-
-      .plyr--audio .plyr__time {
-        font-size: 11px;
-      }
-    }
     /* 音频卡片样式 */
 .audio-card {
   background: linear-gradient(135deg, #8a4bff 0%, #6d8eff 100%);
@@ -495,11 +405,15 @@
   align-items: center;
   max-height: 480px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  width: 100%;
 }
 
 .audio-content {
   padding: 20px;
   color: white;
+  width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -533,6 +447,7 @@
 .audio-title {
   font-size: 16px;
   font-weight: 500;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -671,7 +586,7 @@
 }
 
 .like-btn .liked {
-  color: #ff4081;
+  color: #8a4bff;
 }
 
 .control-btn:hover {
