@@ -50,8 +50,8 @@
                   <i :class="sortIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }"><i class="fas fa-sort-amount-down"></i> 按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }"><i class="fas fa-sort-alpha-up"></i> 按名称升序</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -61,10 +61,10 @@
                   <i :class="filterIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }">全部</el-dropdown-item>
-                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }">收藏</el-dropdown-item>
-                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }">黑名单</el-dropdown-item>
-                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }">白名单</el-dropdown-item>
+                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }"><i class="fas fa-filter"></i> 全部</el-dropdown-item>
+                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }"><i class="fas fa-bookmark"></i> 收藏</el-dropdown-item>
+                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }"><i class="fas fa-lock"></i> 黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }"><i class="fas fa-unlock"></i> 白名单</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -74,10 +74,10 @@
                   <i class="fas fa-layer-group"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }">批量复制</el-dropdown-item>
-                  <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }">批量删除</el-dropdown-item>
-                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }">加入黑名单</el-dropdown-item>
-                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }">加入白名单</el-dropdown-item>
+                  <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-copy"></i> 批量复制</el-dropdown-item>
+                  <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-trash-alt"></i> 批量删除</el-dropdown-item>
+                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-lock"></i> 加入黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-unlock"></i> 加入白名单</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -123,7 +123,7 @@
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                 </div>
               </div>
-              <div class="card-footer">{{ item.metadata.ListType === 'Block' && <i class="fas fa-lock"></i> }} {{ item.name }}</div>
+              <div class="card-footer">{{ item.metadata.ListType === 'Block' ? '<i class="fas fa-lock"></i>' : '' }} {{ item.name }}</div>
             </el-card>
             <el-card v-else class="audio-card"
               :class="{ 'selected': item.selected }"
@@ -391,7 +391,7 @@
 
         Array.from(files).forEach(file => {
           const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/') || file.type.startsWith('audio/');
-          const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+          const isValidSize = file.size <= 50 * 1024 * 1024; // 50MB
 
           if (!isValidType) {
             invalidTypeFiles.push(file.name);
@@ -403,16 +403,37 @@
         });
 
         // 显示错误消息
+        let messages = [];
         if (invalidTypeFiles.length > 0) {
-          this.$message.error(`以下文件类型不支持: ${invalidTypeFiles.join(', ')}`);
+          messages.push({
+            message: `以下文件类型不支持: ${invalidTypeFiles.join(', ')}`,
+            type: 'error'
+          });
         }
         if (oversizedFiles.length > 0) {
-          this.$message.error(`以下文件超过5MB: ${oversizedFiles.join(', ')}`);
+          messages.push({
+            message: `以下文件超过50MB: ${oversizedFiles.join(', ')}`,
+            type: 'error'
+          });
         }
         if (validFiles.length === 0) {
-          this.$message.info('没有符合条件的文件');
+          messages.push({
+            message: '没有符合条件的文件',
+            type: 'info'
+          });
           return;
         }
+
+        // 错误消息依次显示,每条消息间隔1秒
+        messages.forEach((msg, index) => {
+          setTimeout(() => {
+            this.$message({
+              message: msg.message,
+              type: msg.type,
+              duration: 3000
+            });
+          }, index * 1000);
+        });
 
         console.log("ValidFiles: ", validFiles);
         this.$confirm(`确定要上传这 ${validFiles.length} 个文件吗?`, '提示', {
