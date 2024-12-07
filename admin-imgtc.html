@@ -85,8 +85,9 @@
                 <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
               </span>
               <el-checkbox
-                :value="isSelected(item.name)"
-                @input="toggleSelect(item.name)"
+                v-model="selectedFileNames"
+                :value="item.name"
+                @change="(val) => toggleSelect(item.name)"
               ></el-checkbox>
               <template v-if="fileType === 'image'">
                 <el-image
@@ -160,7 +161,7 @@
                     <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
                   </button>
                   <button class="control-btn" @click.stop="toggleSelect(item.name)">
-                    <i :class="isSelected(item.name) ? 'fas fa-check' : 'far fa-square'"></i>
+                    <i :class="selectedFileNames.has(item.name) ? 'fas fa-check' : 'far fa-square'"></i>
                   </button>
                   <button class="control-btn" @click.stop="handleCopy(item.name)">
                     <i class="fas fa-link"></i>
@@ -323,6 +324,7 @@
         } else {
           this.selectedFileNames.add(fileName);
         }
+        this.$forceUpdate();
       },
       startDragging(event, index) {
         event.preventDefault();
