@@ -59,7 +59,7 @@ body {
   padding: 2px 8px;
   border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  transition: all 0.3s ease;
   color: #333;
 }
 
@@ -482,7 +482,6 @@ body {
 }
 
 .play-btn:hover {
-  transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -497,11 +496,6 @@ body {
 
 .like-btn .liked, .select-btn .selected {
   color: #FFD7E4;
-}
-
-.control-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.05);
 }
 
 /* 移动端适配 */
@@ -527,9 +521,5 @@ body {
 
 /* 选中状态样式 */
 .control-btn.select-btn i.selected {
-  color: #fff;
-}
-
-.control-btn.select-btn:has(i.selected) {
-  background: #FFD7E4;
+  color: #FFD7E4;
 }
