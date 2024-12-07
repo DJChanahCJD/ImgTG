@@ -113,7 +113,6 @@
                      :class="{ 'selected': item.selected, 'hovering': hoveredIndex === index }"
                      @mouseenter="hoveredIndex = index"
                      @mouseleave="hoveredIndex = null">
-              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index" class="audio-checkbox"></el-checkbox>
 
               <!-- 音频内容区域 -->
               <div class="audio-content">
@@ -156,6 +155,9 @@
                 <div class="audio-controls">
                   <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
                     <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
+                  </button>
+                  <button class="control-btn" @click.stop="toggleSelect(index)">
+                    <i :class="item.selected ? 'fas fa-check' : 'far fa-square'"></i>
                   </button>
                   <button class="control-btn" @click.stop="handleCopy(index, item.name)">
                     <i class="fas fa-link"></i>
@@ -305,6 +307,9 @@
       updateWindowWidth() {
         this.windowWidth = window.innerWidth;
         this.calculatePageSize();
+      },
+      toggleSelect(index) {
+        this.tableData[index].selected = !this.tableData[index].selected;
       },
       startDragging(event, index) {
         event.preventDefault();
