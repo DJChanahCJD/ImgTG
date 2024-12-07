@@ -108,7 +108,7 @@
               </div>
               <div class="card-footer">{{ item.name }}</div>
             </el-card>
-            <el-card v-else class="audio-card" :class="{ 'selected': item.selected }" @click="toggleSelect(index)">
+            <el-card v-else class="audio-card" style="border-radius: 16px;" :class="{ 'selected': item.selected }" @click="toggleSelect(index)">
               <!-- 音频内容区域 -->
               <div class="audio-content">
                 <!-- 音频标题和时长 -->
