@@ -79,8 +79,8 @@
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }">批量复制</el-dropdown-item>
                   <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }">批量删除</el-dropdown-item>
-                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }">批量加入黑名单</el-dropdown-item>
-                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }">批量加入白名单</el-dropdown-item>
+                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }">加入黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }">加入白名单</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -247,7 +247,7 @@
         return this.tableData.filter(data => {
           const matchesSearch = !this.search || data.name.toLowerCase().includes(this.search.toLowerCase());
 
-          // 筛选
+          // 根据筛选选项过滤
           const matchesFilter =
             this.filterOption === 'all' ? true :
             this.filterOption === 'favorites' ? data.metadata.liked :
@@ -261,7 +261,10 @@
             'video': ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
             'audio': ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
           }
-          return matchesSearch && matchesFavorites && matchesFilter && fileTypes[this.fileType].includes(extension);
+
+          return matchesSearch &&
+                 matchesFilter &&
+                 fileTypes[this.fileType].includes(extension);
         });
       },
       paginatedTableData() {
@@ -719,13 +722,17 @@
         this.currentPage = 1;
         localStorage.setItem('fileType', type);
         this.$message({
-          message: `已切换为 ${this.getFileTypeName(type)} 模式`,
+          message: `已切换为${this.getFileTypeName(type)}模式`,
           type: 'success',
           duration: 1500
         });
       },
-      getFileTypeTypeName(type) {
-        return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
+      getFileTypeName(type) {
+        return {
+          'image': '图片',
+          'video': '视频',
+          'audio': '音频'
+        }[type] || '文件';
       },
       isPlaying(index) {
         const audio = this.$refs[`audio-${index}`]?.[0];
