@@ -129,7 +129,7 @@
     }
 
     .header-content .actions .enabled {
-      color: #B39DDB; /* 使���柔和的淡紫色 */
+      color: #B39DDB; /* 使用柔和的淡紫色 */
     }
 
     .search-card .el-input__inner {
@@ -295,6 +295,229 @@
       .el-card__body{padding: 0;}
       .search-card {display: none;}
     }
+
+    /* 音频卡片样式 */
+.audio-card {
+  background: linear-gradient(135deg, #8a4bff 0%, #6d8eff 100%);
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-height: 480px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  width: 100%;
+}
+
+.audio-content {
+  padding: 20px;
+  color: white;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 480px;
+}
+
+.audio-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.audio-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  margin-right: 15px;
+}
+
+.audio-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.audio-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.audio-title {
+  font-size: 16px;
+  font-weight: 500;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.audio-artist {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.audio-progress {
+  margin: 20px 0;
+}
+
+.progress-bar {
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.progress-bar:hover .progress-handle,
+.progress-bar.dragging .progress-handle {
+  opacity: 1;
+}
+
+.progress-track {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.progress-current {
+  position: absolute;
+  height: 100%;
+  background: white;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-bar:hover .progress-handle {
+  opacity: 1;
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.control-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.play-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  color: #8a4bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.play-btn i {
+  font-size: 18px;
+  margin-left: 2px; /* 稍微调整播放图标的位置 */
+}
+
+.like-btn {
+  color: white;
+}
+
+.like-btn .liked {
+  color: #8a4bff;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .audio-content {
+    padding: 15px;
+  }
+
+  .audio-controls {
+    gap: 15px;
+  }
+
+  .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .play-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
   </style>
 </head>
 <body>
@@ -395,18 +618,72 @@
               </div>
               <div class="card-footer">{{ item.name }}</div>
             </el-card>
-            <audio-card
-              v-else
-              :audio-name="item.name"
-              :audio-url="`/file/${item.name}`"
-              :liked="item.metadata.liked"
-              :selected="item.selected"
-              @select="toggleSelect(index)"
-              @copy="handleCopy(index, item.name)"
-              @toggle-like="toggleLike(index, item.name)"
-              @delete="handleDelete(index, item.name)"
-              @play="handlePlay(index)"
-            />
+            <el-card v-else class="audio-card" :class="{ 'selected': item.selected }" @click="toggleSelect(index)">
+              <!-- 音频内容区域 -->
+              <div class="audio-content">
+                <!-- 音频标题和时长 -->
+                <div class="audio-header">
+                  <div class="audio-avatar">
+                    <img src="/static/music.png" alt="Music">
+                  </div>
+                  <div class="audio-info">
+                    <div class="audio-title">{{ item.name }}</div>
+                    <div class="audio-subtitle">Audio File</div>
+                  </div>
+                </div>
+
+                <!-- 进度条 -->
+                <div class="audio-progress">
+                  <div class="progress-bar"
+                       @click="seekAudio($event, index)"
+                       @mousedown="startDragging($event, index)"
+                       @mousemove="onDragging($event, index)"
+                       @mouseup="stopDragging"
+                       @mouseleave="stopDragging">
+                    <div class="progress-track"></div>
+                    <div class="progress-current" :style="{ width: getProgress(index) + '%' }"></div>
+                    <div class="progress-handle" :style="{ left: getProgress(index) + '%' }"></div>
+                  </div>
+                  <div class="time-display">
+                    <span>{{ getCurrentTime(index) }}</span>
+                    <span>{{ getDuration(index) }}</span>
+                  </div>
+                </div>
+
+                <!-- 控制按钮区 -->
+                <div class="audio-controls">
+                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
+                    <i class="fas fa-link"></i>
+                  </button>
+
+                  <button class="play-btn" @click.stop="togglePlay(index)">
+                    <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
+                  </button>
+
+                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
+                    <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
+                  </button>
+
+                  <button class="control-btn" @click.stop="handleDelete(index, item.name)">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 选中指示器 -->
+              <div class="select-indicator" v-if="item.selected">
+                <i class="fas fa-check"></i>
+              </div>
+
+              <audio
+                :ref="'audio-' + index"
+                :src="'/file/' + item.name"
+                @loadedmetadata="initAudio($event, index)"
+                @timeupdate="updateProgress($event, index)"
+                @ended="onAudioEnded(index)"
+                preload="metadata">
+              </audio>
+            </el-card>
           </template>
         </div>
         <div class="pagination-container">
@@ -434,8 +711,6 @@
 <!-- Import JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
 <script>
-  import AudioCard from './components/AudioCard.vue';
-  Vue.component('audio-card', AudioCard);
   new Vue({
     el: '#app',
     data: {
