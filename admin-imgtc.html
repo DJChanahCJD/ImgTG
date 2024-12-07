@@ -100,13 +100,21 @@
                     style="width: 100%; height: 100%; object-fit: cover;"
                   ></video>
                 </template>
+                <template v-else>
+                  <el-image src="/static/music.png" fit="cover"></el-image>
+                </template>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                     <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                   </div>
                 </div>
-                <div class="file-info">{{ item.name }}</div>
+                <div class="file-info">
+                  <span v-if="fileType !== 'audio'">{{ item.name }}</span>
+                  <span v-else>
+                    <audio :src="'/file/' + item.name" controls></audio>
+                  </span>
+                </div>
               </el-card>
               <el-card v-else-if="fileType === 'audio'">
                 <audio-player
