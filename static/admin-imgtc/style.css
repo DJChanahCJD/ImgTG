@@ -495,11 +495,7 @@ body {
   color: white;
 }
 
-.like-btn, .select-btn {
-  scale: 1.2;
-}
-
-.like-btn .liked, .select-btn.selected {
+.like-btn .liked, .select-btn .selected {
   color: #FFD7E4;
 }
 
@@ -527,4 +523,13 @@ body {
     width: 42px;
     height: 42px;
   }
+}
+
+/* 选中状态样式 */
+.control-btn.select-btn i.selected {
+  color: #fff;
+}
+
+.control-btn.select-btn:has(i.selected) {
+  background: #FFD7E4;
 }
