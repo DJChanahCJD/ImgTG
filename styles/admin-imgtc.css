@@ -381,87 +381,141 @@ body {
 /* 音频卡片样式 */
 .audio-card {
   width: 100%;
-  aspect-ratio: 4 / 3;
-  background: rgba(255, 255, 255, 0.6);
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  position: relative;
-  transition: transform 0.3s ease;
-  border: none;
+  padding: 15px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
 .audio-card:hover {
   transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 0;
   cursor: pointer;
 }
 
-/* 继承原有的收藏图标、复选框和悬浮操作样式 */
-.audio-card .collect-icon {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
-}
-
-.audio-card .el-checkbox {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 10;
-}
-
-.audio-card .audio-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.music-icon {
+  width: 45px;
+  height: 45px;
+  background: #B39DDB;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
 }
 
-.audio-card:hover .audio-overlay {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* 播放器样式 */
-.audio-player {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: linear-gradient(145deg, rgba(179, 157, 219, 0.1), rgba(255, 255, 255, 0.1));
-}
-
-/* 文件信息样式 */
-.file-info {
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.6);
+.music-icon i {
   color: white;
-  text-align: center;
+  font-size: 20px;
+}
+
+.music-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.title {
+  font-weight: 500;
+  margin-bottom: 5px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* 适配移动端 */
+.time {
+  font-size: 12px;
+  color: #666;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #E0E0E0;
+  border-radius: 2px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.progress {
+  height: 100%;
+  background: #B39DDB;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.control-btn:hover {
+  background: rgba(179, 157, 219, 0.1);
+  color: #B39DDB;
+}
+
+.play-btn {
+  width: 40px;
+  height: 40px;
+  background: #B39DDB;
+  color: white;
+}
+
+.play-btn:hover {
+  background: #9575CD;
+  transform: scale(1.1);
+}
+
+.action-btns {
+  display: flex;
+  gap: 5px;
+}
+
+.is-playing .music-icon {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
 @media (max-width: 768px) {
   .audio-card {
-    aspect-ratio: unset;
-    min-height: 180px;
+    padding: 10px;
   }
 
-  .audio-player {
-    padding: 15px;
+  .music-icon {
+    width: 35px;
+    height: 35px;
   }
 }

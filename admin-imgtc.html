@@ -79,7 +79,7 @@
         <el-main class="main-container">
           <div class="content">
             <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
+              <el-card v-if="fileType === 'image' || fileType === 'video'">
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
@@ -100,29 +100,6 @@
                     style="width: 100%; height: 100%; object-fit: cover;"
                   ></video>
                 </template>
-                <template v-else>
-                  <div class="audio-card">
-                    <div class="audio-info">
-                      <div class="audio-icon">
-                        <i class="fas fa-music"></i>
-                      </div>
-                      <div class="audio-details">
-                        <div class="audio-title">{{ item.name }}</div>
-                        <div class="audio-duration" ref="audioDuration">加载中...</div>
-                      </div>
-                    </div>
-                    <div class="audio-controls">
-                      <div class="custom-audio-player">
-                        <audio
-                          :src="'/file/' + item.name"
-                          controls
-                          @loadedmetadata="updateDuration($event, index)"
-                          preload="metadata">
-                        </audio>
-                      </div>
-                    </div>
-                  </div>
-                </template>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
@@ -130,6 +107,18 @@
                   </div>
                 </div>
                 <div class="file-info">{{ item.name }}</div>
+              </el-card>
+              <el-card v-else-if="fileType === 'audio'">
+                <audio-player
+                  :src="'/file/' + item.name"
+                  :file-name="item.name"
+                  :metadata="item.metadata"
+                  :selected="item.selected"
+                  @toggle-like="toggleLike(index, item.name)"
+                  @select="item.selected = !item.selected"
+                  @copy="handleCopy(index, item.name)"
+                  @delete="handleDelete(index, item.name)"
+                ></audio-player>
               </el-card>
             </template>
           </div>
