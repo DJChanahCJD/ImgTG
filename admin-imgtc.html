@@ -490,7 +490,7 @@
   border-radius: 16px;
   overflow: hidden;
   position: relative;
-  height: 100%;
+  max-height: 480px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -550,6 +550,25 @@
   border-radius: 2px;
   cursor: pointer;
   margin-bottom: 8px;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.progress-bar:hover .progress-handle,
+.progress-bar.dragging .progress-handle {
+  opacity: 1;
 }
 
 .progress-track {
@@ -642,19 +661,17 @@
   margin-left: 2px; /* 稍微调整播放图标的位置 */
 }
 
-/* 保持收藏图标和复选框的样式 */
-.collect-icon {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
+.like-btn {
+  color: white;
 }
 
-.el-checkbox {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+.like-btn .liked {
+  color: #ff4081;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
 }
 
 /* 移动端适配 */
@@ -777,45 +794,41 @@
               </div>
               <div class="card-footer">{{ item.name }}</div>
             </el-card>
-            <!-- 音频文件卡片 -->
-            <el-card v-else class="audio-card">
-              <!-- 收藏图标 -->
-              <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
-              </span>
-
-              <!-- 复选框 -->
-              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-
-              <!-- 音频信息区域 -->
+            <el-card v-else class="audio-card" :class="{ 'selected': item.selected }" @click="toggleSelect(index)">
+              <!-- 音频内容区域 -->
               <div class="audio-content">
-                <!-- 封面和标题 -->
+                <!-- 音频标题和时长 -->
                 <div class="audio-header">
                   <div class="audio-avatar">
                     <img src="/static/music.png" alt="Music">
                   </div>
                   <div class="audio-info">
                     <div class="audio-title">{{ item.name }}</div>
-                    <div class="audio-artist">Audio File</div>
+                    <div class="audio-subtitle">Audio File</div>
                   </div>
                 </div>
 
                 <!-- 进度条 -->
                 <div class="audio-progress">
-                  <div class="progress-bar" @click="seekAudio($event, index)">
+                  <div class="progress-bar"
+                       @click="seekAudio($event, index)"
+                       @mousedown="startDragging($event, index)"
+                       @mousemove="onDragging($event, index)"
+                       @mouseup="stopDragging"
+                       @mouseleave="stopDragging">
                     <div class="progress-track"></div>
                     <div class="progress-current" :style="{ width: getProgress(index) + '%' }"></div>
                     <div class="progress-handle" :style="{ left: getProgress(index) + '%' }"></div>
                   </div>
                   <div class="time-display">
-                    <span class="current-time">{{ getCurrentTime(index) }}</span>
-                    <span class="duration">{{ getDuration(index) }}</span>
+                    <span>{{ getCurrentTime(index) }}</span>
+                    <span>{{ getDuration(index) }}</span>
                   </div>
                 </div>
 
                 <!-- 控制按钮区 -->
                 <div class="audio-controls">
-                  <button class="control-btn" @click.stop="handleCopy(index, item.name)" title="复制链接">
+                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
                     <i class="fas fa-link"></i>
                   </button>
 
@@ -823,13 +836,21 @@
                     <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
                   </button>
 
-                  <button class="control-btn" @click.stop="handleDelete(index, item.name)" title="删除">
+                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
+                    <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
+                  </button>
+
+                  <button class="control-btn" @click.stop="handleDelete(index, item.name)">
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
               </div>
 
-              <!-- 音频元素 -->
+              <!-- 选中指示器 -->
+              <div class="select-indicator" v-if="item.selected">
+                <i class="fas fa-check"></i>
+              </div>
+
               <audio
                 :ref="'audio-' + index"
                 :src="'/file/' + item.name"
@@ -879,6 +900,8 @@
       sortOption: 'dateDesc',
       showFavorites: false,
       fileType: 'image',
+      isDragging: false,
+      currentDraggingIndex: null,
       audioStates: {}, // 用于存储音频状态
     },
     computed: {
@@ -945,6 +968,31 @@
       updateWindowWidth() {
         this.windowWidth = window.innerWidth;
         this.calculatePageSize();
+      },
+      toggleSelect(index) {
+        this.tableData[index].selected = !this.tableData[index].selected;
+      },
+      startDragging(event, index) {
+        this.isDragging = true;
+        this.currentDraggingIndex = index;
+        this.updateProgress(event, index);
+      },
+      stopDragging() {
+        this.isDragging = false;
+        this.currentDraggingIndex = null;
+      },
+      onDragging(event, index) {
+        if (this.isDragging && this.currentDraggingIndex === index) {
+          this.updateProgress(event, index);
+        }
+      },
+      updateProgress(event, index) {
+        const audio = this.$refs[`audio-${index}`]?.[0];
+        if (!audio) return;
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        audio.currentTime = percent * audio.duration;
       },
       handleUpload() {
         this.$refs.fileInput.click();
@@ -1339,12 +1387,9 @@
         return (currentTime / audio.duration) * 100 || 0;
       },
       seekAudio(event, index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return;
-
-        const rect = event.currentTarget.getBoundingClientRect();
-        const percent = (event.clientX - rect.left) / rect.width;
-        audio.currentTime = percent * audio.duration;
+        if (!this.isDragging) {
+          this.updateProgress(event, index);
+        }
       },
       formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
