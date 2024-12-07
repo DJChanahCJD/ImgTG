@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
+  <!-- Plyr 播放器 -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
   <style>
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -404,6 +407,78 @@
         font-size: 10px;
       }
     }
+
+    /* Plyr 自定义样式 */
+    .custom-audio-player {
+      padding: 8px 12px;
+    }
+
+    .custom-audio-player .file-name {
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .plyr__container {
+      --plyr-color-main: #B39DDB;
+      --plyr-audio-controls-background: transparent;
+      --plyr-audio-control-color: #666;
+      --plyr-audio-control-color-hover: #9575CD;
+      --plyr-range-thumb-background: #B39DDB;
+      --plyr-range-fill-background: #B39DDB;
+      --plyr-audio-progress-buffered-background: rgba(179, 157, 219, 0.2);
+    }
+
+    /* 播放按钮样式 */
+    .plyr--audio .plyr__control[data-plyr="play"] {
+      background: #B39DDB;
+      color: white;
+      transition: all 0.2s ease;
+    }
+
+    .plyr--audio .plyr__control[data-plyr="play"]:hover {
+      background: #9575CD;
+      transform: scale(1.05);
+    }
+
+    /* 进度条样式 */
+    .plyr--full-ui input[type=range] {
+      height: 4px;
+    }
+
+    .plyr__progress input[type=range] {
+      cursor: pointer;
+    }
+
+    /* 时间显示样式 */
+    .plyr--audio .plyr__time {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* 音量控制样式 */
+    .plyr--audio .plyr__volume {
+      max-width: 80px;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .custom-audio-player {
+        padding: 6px 8px;
+      }
+
+      .custom-audio-player .file-name {
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .plyr--audio .plyr__time {
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -501,6 +576,7 @@
                   <el-image
                     src="/static/music.png"
                     fit="contain"
+                    style="width:60%; height:60%;"
                   ></el-image>
                 </div>
               </template>
@@ -512,32 +588,16 @@
               </div>
               <div class="card-footer">
                 <span v-if="fileType !== 'audio'">{{ item.name }}</span>
-                <span v-else class="custom-audio-player">
-                  <div class="player-controls">
-                    <button class="play-btn" @click.stop="togglePlay(index)">
-                      <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
-                    </button>
-                    <div class="player-content">
-                      <div class="file-name" :title="item.name">{{ item.name }}</div>
-                      <div class="progress-row">
-                        <div class="progress-bar" @click.stop="seekAudio($event, index)">
-                          <div class="progress" :style="{ width: getProgress(index) + '%' }"></div>
-                        </div>
-                        <div class="time-display">
-                          {{ getCurrentTime(index) }} / {{ getDuration(index) }}
-                        </div>
-                      </div>
-                    </div>
+                <div v-else class="custom-audio-player">
+                  <div class="file-name" :title="item.name">{{ item.name }}</div>
+                  <div class="plyr__container">
+                    <audio
+                      :ref="'audio-' + index"
+                      :src="'/file/' + item.name"
+                      preload="metadata"
+                    ></audio>
                   </div>
-                  <audio
-                    :ref="'audio-' + index"
-                    :src="'/file/' + item.name"
-                    preload="metadata"
-                    @loadedmetadata="initAudio($event, index)"
-                    @timeupdate="updateProgress($event, index)"
-                    @ended="onAudioEnded(index)"
-                  ></audio>
-                </span>
+                </div>
               </div>
             </el-card>
           </template>
@@ -1051,6 +1111,36 @@
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
+      },
+      initPlyr(index) {
+        const element = this.$refs[`audio-${index}`][0];
+        if (!element) return;
+
+        // 配置 Plyr
+        const player = new Plyr(element, {
+          controls: [
+            'play',
+            'progress',
+            'current-time',
+            'duration',
+            'mute',
+            'volume'
+          ],
+          tooltips: { controls: true, seek: true },
+          keyboard: { focused: true, global: false }
+        });
+
+        // 存储播放器实例
+        this.players[index] = player;
+
+        // 在切换音频时暂停其他音频
+        player.on('play', () => {
+          Object.entries(this.players).forEach(([key, otherPlayer]) => {
+            if (key !== index.toString() && otherPlayer.playing) {
+              otherPlayer.pause();
+            }
+          });
+        });
       }
     },
     mounted() {
