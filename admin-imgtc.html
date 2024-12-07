@@ -586,7 +586,10 @@
                 credentials: 'include'
               }).then(response => {
                 if (!response.ok) {
-                  throw new Error(`上传失败: ${file.name}`);
+                  return response.json().then(errorData => {
+                    console.error('Upload error details:', errorData);
+                    throw new Error(`上传失败: ${file.name} (${errorData.error || '未知错误'})`);
+                  });
                 }
                 return response.json();
               }).then(result => {
@@ -621,8 +624,8 @@
                     });
                 }
               }).catch(error => {
-                failedUploads.push(file.name); // 记录失败的文件名称
-                console.error(error.message);
+                console.error('Upload error:', error);
+                failedUploads.push(`${file.name} (${error.message})`);
               }).finally(() => {
                 uploadNext(); // 继续上传下一个文件
               });
