@@ -68,9 +68,6 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="全选当前页" placement="bottom">
-              <i class="fas fa-check-square" @click="selectAllInPage"></i>
-            </el-tooltip>
             <el-tooltip content="批量操作" placement="bottom">
               <el-dropdown @command="handleBatchOperation" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -84,8 +81,11 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="检测失效图片" placement="bottom">
-              <i class="fas fa-wrench" @click="checkBrokenImages"></i>
+            <el-tooltip content="全选当前页" placement="bottom">
+              <i class="fas fa-check-square" @click="selectAllInPage"></i>
+            </el-tooltip>
+            <el-tooltip content="检测失效文件" placement="bottom">
+              <i class="fas fa-wrench" @click="checkBrokenFiles"></i>
             </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
               <i class="fas fa-home" @click="handleLogout"></i>
@@ -123,13 +123,12 @@
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                 </div>
               </div>
-              <div class="card-footer">{{ item.name }}</div>
+              <div class="card-footer">{{ item.metadata.ListType === 'Block' && <i class="fas fa-lock"></i> }} {{ item.name }}</div>
             </el-card>
             <el-card v-else class="audio-card"
               :class="{ 'selected': item.selected }"
               style="border-radius: 16px;"
             >
-
               <!-- 音频内容区域 -->
               <div class="audio-content">
                 <!-- 音频标题和时长 -->
@@ -679,24 +678,35 @@
           case 'unblock': this.handleBatchUnblock(); break;
         }
       },
-      checkBrokenImages() {
+      checkBrokenFiles() {
         const loadingMessage = this.$message({
-          message: '正在检测失效图片...',
+          message: '正在检测失效文件...',
           duration: 0,
           showClose: false,
         });
 
         let brokenCount = 0;
         const promises = this.tableData.map((item, index) => {
+          const fileIndex = this.tableData.findIndex(item => item.name === this.selectedFiles[index].name);
           return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => resolve({ index, status: 'success' });
-            img.onerror = () => {
-              brokenCount++;
-              this.tableData[index].selected = true;
-              resolve({ index, status: 'error' });
-            };
-            img.src = `${this.baseURL}/file/${item.name}`;
+            fetch(`${this.baseURL}/file/${item.name}`, {
+              method: 'HEAD',
+              cache: 'no-cache'  // 避免缓存影响检测结果
+            })
+              .then(response => {
+                if (!response.ok) {
+                  brokenCount++;
+                  this.tableData[fileIndex].selected = true;
+                  resolve({ index, status: 'error' });
+                } else {
+                  resolve({ index, status: 'success' });
+                }
+              })
+              .catch(() => {
+                brokenCount++;
+                this.tableData[fileIndex].selected = true;
+                resolve({ index, status: 'error' });
+              });
           });
         });
 
@@ -705,13 +715,13 @@
           if (brokenCount > 0) {
             this.$message({
               dangerouslyUseHTMLString: true,
-              message: `检测到 ${brokenCount} 张失效图片，已自动选中。<br>您可以使用批量删除功能移除它们。`,
+              message: `检测到 ${brokenCount} 个失效文件，已自动选中。<br>您可以使用批量删除功能移除它们。`,
               type: 'warning',
               duration: 5000
             });
           } else {
             this.$message({
-              message: '未检测到失效图片',
+              message: '未检测到失效文件',
               type: 'success'
             });
           }
