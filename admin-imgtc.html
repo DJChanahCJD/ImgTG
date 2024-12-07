@@ -81,10 +81,13 @@
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <!-- 非音频文件 -->
             <el-card class="image-card" v-if="fileType !== 'audio'">
-              <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+              <span class="collect-icon" @click.stop="toggleLike(item.name)">
                 <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
               </span>
-              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+              <el-checkbox
+                :value="isSelected(item.name)"
+                @input="toggleSelect(item.name)"
+              ></el-checkbox>
               <template v-if="fileType === 'image'">
                 <el-image
                   :src="'/file/' + item.name"
@@ -102,15 +105,15 @@
               </template>
               <div class="image-overlay">
                 <div class="overlay-buttons">
-                  <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                  <el-button size="mini" type="primary" @click.stop="handleCopy(item.name)">复制地址</el-button>
+                  <el-button size="mini" type="danger" @click.stop="handleDelete(item.name)">删除</el-button>
                 </div>
               </div>
               <div class="card-footer">{{ item.name }}</div>
             </el-card>
             <el-card v-else class="audio-card"
                      style="border-radius: 16px;"
-                     :class="{ 'selected': item.selected, 'hovering': hoveredIndex === index }"
+                     :class="{ 'selected': isSelected(item.name), 'hovering': hoveredIndex === index }"
                      @mouseenter="hoveredIndex = index"
                      @mouseleave="hoveredIndex = null">
 
@@ -153,13 +156,13 @@
 
                 <!-- 控制按钮区 -->
                 <div class="audio-controls">
-                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
+                  <button class="control-btn like-btn" @click.stop="toggleLike(item.name)">
                     <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
                   </button>
-                  <button class="control-btn" @click.stop="toggleSelect(index)">
-                    <i :class="item.selected ? 'fas fa-check' : 'far fa-square'"></i>
+                  <button class="control-btn" @click.stop="toggleSelect(item.name)">
+                    <i :class="isSelected(item.name) ? 'fas fa-check' : 'far fa-square'"></i>
                   </button>
-                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
+                  <button class="control-btn" @click.stop="handleCopy(item.name)">
                     <i class="fas fa-link"></i>
                   </button>
                   <!-- 播放按钮 -->
@@ -179,13 +182,13 @@
                              @input="updateVolume($event, index)">
                     </div>
                   </div>
-                  <button class="control-btn" @click.stop="handleDelete(index, item.name)">
+                  <button class="control-btn" @click.stop="handleDelete(item.name)">
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
               </div>
               <!-- 选中指示器 -->
-              <div class="select-indicator" v-if="item.selected">
+              <div class="select-indicator" v-if="isSelected(item.name)">
                 <i class="fas fa-check"></i>
               </div>
               <audio
@@ -233,7 +236,7 @@
       search: '',
       currentPage: 1,
       pageSize: 15,
-      selectedFiles: [],
+      selectedFileNames: new Set(),
       sortOption: 'dateDesc',
       showFavorites: false,
       fileType: 'image',
@@ -269,12 +272,15 @@
       fileTypeIcon() {
         return this.fileType === 'image' ? 'fas fa-image' :
                 this.fileType === 'video' ? 'fas fa-video' : 'fas fa-music';
-      }
+      },
+      selectedFiles() {
+        return this.tableData.filter(file => this.selectedFileNames.has(file.name));
+      },
     },
     watch: {
       tableData: {
         handler(newData) {
-          this.selectedFiles = newData.filter(file => file.selected);
+          this.selectedFileNames = new Set(newData.filter(file => file.selected).map(file => file.name));
         },
         deep: true
       },
@@ -308,8 +314,12 @@
         this.windowWidth = window.innerWidth;
         this.calculatePageSize();
       },
-      toggleSelect(index) {
-        this.tableData[index].selected = !this.tableData[index].selected;
+      toggleSelect(fileName) {
+        if (this.selectedFileNames.has(fileName)) {
+          this.selectedFileNames.delete(fileName);
+        } else {
+          this.selectedFileNames.add(fileName);
+        }
       },
       startDragging(event, index) {
         event.preventDefault();
@@ -500,12 +510,17 @@
         event.target.value = '';
       },
       selectAllInPage() {
-        const allSelected = this.paginatedTableData.every(file => file.selected);
-        // 如果本页所有图片都已选中，则取消选中
+        const allSelected = this.paginatedTableData.every(file => this.selectedFileNames.has(file.name));
         if (allSelected) {
-          this.paginatedTableData.forEach(file => file.selected = false);
+          // 取消选中当前页的所有文件
+          this.paginatedTableData.forEach(file => {
+            this.selectedFileNames.delete(file.name);
+          });
         } else {
-          this.paginatedTableData.forEach(file => file.selected = true);
+          // 选中当前页的所有文件
+          this.paginatedTableData.forEach(file => {
+            this.selectedFileNames.add(file.name);
+          });
         }
       },
       refreshFileList() {
@@ -519,7 +534,7 @@
           })
           .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
       },
-      handleDelete(index, key) {
+      handleDelete(key) {
         this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -552,7 +567,7 @@
                   }
                 }
               });
-              this.selectedFiles = [];
+              this.selectedFileNames = new Set();
               this.updateStats();
               this.$message.success('批量删除成功!');
             })
@@ -579,7 +594,7 @@
       handleLogout() {
         window.location.href = '/';
       },
-      handleCopy(index, key) {
+      handleCopy(key) {
         const text = `${this.baseURL}/file/${key}`;
         navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
           this.copyToClipboardFallback(text);
@@ -587,7 +602,7 @@
       handlePageChange(page) {
         this.currentPage = page;
       },
-      toggleLike(index, name) {
+      toggleLike(name) {
         console.log(`Toggling like for image: ${name}`);
 
         // 找到对应文件的索引
