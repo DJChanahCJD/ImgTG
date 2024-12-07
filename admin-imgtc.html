@@ -162,7 +162,7 @@
       flex-grow: 1;
     }
 
-    .el-card {
+    .image-card {
       width: 100%;
       aspect-ratio: 4 / 3;
       background: rgba(255, 255, 255, 0.6);
@@ -175,7 +175,7 @@
       border: none;
     }
 
-    .el-card:hover {
+    .image-card:hover {
       transform: scale(1.02);
       cursor: pointer;
     }
@@ -483,6 +483,200 @@
         font-size: 11px;
       }
     }
+    /* 音频卡片样式 */
+.audio-card {
+  background: linear-gradient(135deg, #8a4bff 0%, #6d8eff 100%);
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.audio-content {
+  padding: 20px;
+  color: white;
+}
+
+.audio-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.audio-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  margin-right: 15px;
+}
+
+.audio-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.audio-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.audio-title {
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.audio-artist {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.audio-progress {
+  margin: 20px 0;
+}
+
+.progress-bar {
+  position: relative;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.progress-current {
+  position: absolute;
+  height: 100%;
+  background: white;
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.progress-handle {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-bar:hover .progress-handle {
+  opacity: 1;
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.control-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.play-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: white;
+  color: #8a4bff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.play-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.play-btn i {
+  font-size: 18px;
+  margin-left: 2px; /* 稍微调整播放图标的位置 */
+}
+
+/* 保持收藏图标和复选框的样式 */
+.collect-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+}
+
+.el-checkbox {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .audio-content {
+    padding: 15px;
+  }
+
+  .audio-controls {
+    gap: 15px;
+  }
+
+  .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .play-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
   </style>
 </head>
 <body>
@@ -554,12 +748,12 @@
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card>
+            <!-- 非音频文件 -->
+            <el-card class="image-card" v-if="fileType !== 'audio'">
               <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
                 <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
               </span>
               <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-              <!-- 根据文件类型显示不同的媒体元素 -->
               <template v-if="fileType === 'image'">
                 <el-image
                   :src="'/file/' + item.name"
@@ -575,34 +769,75 @@
                   style="width: 100%; height: 100%; object-fit: cover;"
                 ></video>
               </template>
-              <template v-else>
-                <div class="audio-cover">
-                  <el-image
-                    src="/static/music.png"
-                    fit="contain"
-                    style="width:60%; height:60%;"
-                  ></el-image>
-                </div>
-              </template>
               <div class="image-overlay">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                 </div>
               </div>
-              <div class="card-footer">
-                <span v-if="fileType !== 'audio'">{{ item.name }}</span>
-                <div v-else class="custom-audio-player">
-                  <div class="file-name" :title="item.name">{{ item.name }}</div>
-                  <div class="plyr__container">
-                    <audio
-                      :ref="'audio-' + index"
-                      :src="'/file/' + item.name"
-                      preload="metadata"
-                    ></audio>
+              <div class="card-footer">{{ item.name }}</div>
+            </el-card>
+            <!-- 音频文件卡片 -->
+            <el-card v-else class="audio-card">
+              <!-- 收藏图标 -->
+              <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+              </span>
+
+              <!-- 复选框 -->
+              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+
+              <!-- 音频信息区域 -->
+              <div class="audio-content">
+                <!-- 封面和标题 -->
+                <div class="audio-header">
+                  <div class="audio-avatar">
+                    <img src="/static/music.png" alt="Music">
+                  </div>
+                  <div class="audio-info">
+                    <div class="audio-title">{{ item.name }}</div>
+                    <div class="audio-artist">Audio File</div>
                   </div>
                 </div>
+
+                <!-- 进度条 -->
+                <div class="audio-progress">
+                  <div class="progress-bar" @click="seekAudio($event, index)">
+                    <div class="progress-track"></div>
+                    <div class="progress-current" :style="{ width: getProgress(index) + '%' }"></div>
+                    <div class="progress-handle" :style="{ left: getProgress(index) + '%' }"></div>
+                  </div>
+                  <div class="time-display">
+                    <span class="current-time">{{ getCurrentTime(index) }}</span>
+                    <span class="duration">{{ getDuration(index) }}</span>
+                  </div>
+                </div>
+
+                <!-- 控制按钮区 -->
+                <div class="audio-controls">
+                  <button class="control-btn" @click.stop="handleCopy(index, item.name)" title="复制链接">
+                    <i class="fas fa-link"></i>
+                  </button>
+
+                  <button class="play-btn" @click.stop="togglePlay(index)">
+                    <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
+                  </button>
+
+                  <button class="control-btn" @click.stop="handleDelete(index, item.name)" title="删除">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
               </div>
+
+              <!-- 音频元素 -->
+              <audio
+                :ref="'audio-' + index"
+                :src="'/file/' + item.name"
+                @loadedmetadata="initAudio($event, index)"
+                @timeupdate="updateProgress($event, index)"
+                @ended="onAudioEnded(index)"
+                preload="metadata">
+              </audio>
             </el-card>
           </template>
         </div>
