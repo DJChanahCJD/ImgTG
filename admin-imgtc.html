@@ -992,6 +992,10 @@
         getFileTypeTypeName(type) {
           return type === 'image' ? '图片' : type === 'video' ? '视频' : '音频';
         },
+        isPlaying(index) {
+          const audio = this.$refs[`audio-${index}`]?.[0];
+          return audio ? !audio.paused : false;
+        },
         togglePlay(index) {
           const audio = this.$refs[`audio-${index}`]?.[0];
           if (!audio) return;
