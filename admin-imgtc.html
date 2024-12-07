@@ -386,7 +386,6 @@
                 </template>
                 <template v-else style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
                   <el-image src="/static/music.png" fit="cover"></el-image>
-                  <audio :src="'/file/' + item.name" controls></audio>
                 </template>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
@@ -394,7 +393,12 @@
                     <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                   </div>
                 </div>
-                <div class="card-footer">{{ item.name }}</div>
+                <div class="card-footer">
+                  <span v-if="fileType !== 'audio'">{{ item.name }}</span>
+                  <span v-else>
+                    <audio :src="'/file/' + item.name" controls></audio>
+                  </span>
+                </div>
               </el-card>
             </template>
           </div>
