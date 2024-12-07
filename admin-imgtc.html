@@ -292,6 +292,24 @@
         .el-card__body{padding: 0;}
         .search-card {display: none;}
       }
+
+      .audio-cover {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(145deg, rgba(179, 157, 219, 0.1), rgba(255, 255, 255, 0.1));
+      }
+
+      /* 可选：添加悬停效果 */
+      .audio-cover .el-image {
+        transition: transform 0.3s ease;
+      }
+
+      .audio-cover:hover .el-image {
+        transform: scale(1.1);
+      }
     </style>
   </head>
   <body>
@@ -384,8 +402,14 @@
                     style="width: 100%; height: 100%; object-fit: cover;"
                   ></video>
                 </template>
-                <template v-else style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                  <el-image src="/static/music.png" fit="cover"></el-image>
+                <template v-else>
+                  <div class="audio-cover">
+                    <el-image
+                      src="/static/music.png"
+                      fit="contain"
+                      style="width: 80%; height: 80%;"
+                    ></el-image>
+                  </div>
                 </template>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
