@@ -167,7 +167,7 @@ body {
   cursor: pointer;
 }
 
-.image-card .el-checkbox {
+.el-checkbox {
   position: absolute;
   top: 10px;
   right: 10px;
