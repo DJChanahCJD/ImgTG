@@ -289,7 +289,7 @@ body {
 
 /* 音频卡片样式 */
 .audio-card {
-  background: linear-gradient(135deg, rgba(138, 75, 255, 0.85) 0%, rgba(109, 142, 255, 0.85) 100%);
+  background: linear-gradient(135deg, , rgba(109, 142, 255, 0.85) 100%);
   border: none;
   border-radius: 16px;
   overflow: hidden;
@@ -301,13 +301,13 @@ body {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
+.audio-card.selected {
+  background: linear-gradient(135deg, rgba(138, 75, 255, 0.85) 0%, rgba(255, 192, 203, 0.9) 100%);
+}
+
 /* 选中状态样式 */
 .audio-card:hover {
   transform: scale(1.02);
-}
-
-.audio-card.selected {
-  box-shadow: 4px #8a4bff !important;
 }
 
 .audio-content {
