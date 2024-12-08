@@ -219,6 +219,9 @@ body {
 .el-card, .el-card__body{
   border: none !important;
 }
+.el-card__body{
+  padding: 16px !important;
+}
 .el-card:hover .image-overlay {
   opacity: 1;
 }
@@ -298,6 +301,10 @@ body {
   max-height: 256px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+}
+
+.video-card{
+  background: linear-gradient(135deg, #ae4bffd9 0%, #6db1ffd9 100%);
 }
 
 .video-card.selected, .audio-card.selected {
