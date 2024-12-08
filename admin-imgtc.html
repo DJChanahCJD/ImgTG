@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./admin-imgtc.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
@@ -16,39 +16,25 @@
       <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="search-card">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
-          </div>
+          <div class="search-card"><el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input></div>
           <el-tooltip content="批量上传" placement="bottom">
-              <span class="stats" @click="handleUpload">
-                <i class="fas fa-upload upload-icon"></i>记录数: {{ Number }}
-              </span>
+            <span class="stats" @click="handleUpload"><i class="fas fa-upload upload-icon"></i>记录数: {{ Number }}</span>
           </el-tooltip>
           <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
           <div class="actions">
             <el-tooltip content="文件类型" placement="bottom">
               <el-dropdown @command="switchFileType" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="fileTypeIcon"></i>
-                </span>
+                <span class="el-dropdown-link"><i :class="fileTypeIcon"></i></span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': fileType === 'image' }">
-                    <i class="fas fa-image"></i> 图片
-                  </el-dropdown-item>
-                  <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': fileType === 'video' }">
-                    <i class="fas fa-video"></i> 视频
-                  </el-dropdown-item>
-                  <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': fileType === 'audio' }">
-                    <i class="fas fa-music"></i> 音频
-                  </el-dropdown-item>
+                  <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': fileType === 'image' }"><i class="fas fa-image"></i> 图片</el-dropdown-item>
+                  <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': fileType === 'video' }"><i class="fas fa-video"></i> 视频</el-dropdown-item>
+                  <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': fileType === 'audio' }"><i class="fas fa-music"></i> 音频</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="sortIcon"></i>
-                </span>
+                <span class="el-dropdown-link"><i :class="sortIcon"></i></span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }"><i class="fas fa-sort-amount-down"></i> 按时间倒序</el-dropdown-item>
                   <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }"><i class="fas fa-sort-alpha-up"></i> 按名称升序</el-dropdown-item>
@@ -57,9 +43,7 @@
             </el-tooltip>
             <el-tooltip content="筛选" placement="bottom">
               <el-dropdown @command="filter" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="filterIcon"></i>
-                </span>
+                <span class="el-dropdown-link"><i :class="filterIcon"></i></span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }"><i class="fas fa-filter"></i> 全部</el-dropdown-item>
                   <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }"><i class="fas fa-bookmark"></i> 收藏</el-dropdown-item>
@@ -70,9 +54,7 @@
             </el-tooltip>
             <el-tooltip content="批量操作" placement="bottom">
               <el-dropdown @command="handleBatchOperation" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i class="fas fa-tasks"></i>
-                </span>
+                <span class="el-dropdown-link"><i class="fas fa-tasks"></i></span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-link"></i> 批量复制</el-dropdown-item>
                   <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-trash-alt"></i> 批量删除</el-dropdown-item>
@@ -81,15 +63,9 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="全选当前页" placement="bottom">
-              <i class="fas fa-check-square" @click="selectAllInPage"></i>
-            </el-tooltip>
-            <el-tooltip content="检测失效文件" placement="bottom">
-              <i class="fas fa-wrench" @click="checkBrokenFiles"></i>
-            </el-tooltip>
-            <el-tooltip content="退出登录" placement="bottom">
-              <i class="fas fa-home" @click="handleLogout"></i>
-            </el-tooltip>
+            <el-tooltip content="全选当前页" placement="bottom"><i class="fas fa-check-square" @click="selectAllInPage"></i></el-tooltip>
+            <el-tooltip content="检测失效文件" placement="bottom"><i class="fas fa-wrench" @click="checkBrokenFiles"></i></el-tooltip>
+            <el-tooltip content="退出登录" placement="bottom"><i class="fas fa-home" @click="handleLogout"></i></el-tooltip>
           </div>
         </div>
       </el-header>
@@ -102,20 +78,13 @@
                 <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
               </span>
               <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+              <!-- 图片 -->
               <template v-if="fileType === 'image'">
-                <el-image
-                  :src="'/file/' + item.name"
-                  :preview-src-list="['/file/' + item.name]"
-                  fit="cover"
-                  lazy="true"
-                ></el-image>
+                <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy="true"></el-image>
               </template>
+              <!-- 视频 -->
               <template v-else-if="fileType === 'video'">
-                <video
-                  :src="'/file/' + item.name"
-                  controls
-                  style="width: 100%; height: 100%; object-fit: cover;"
-                ></video>
+                <video :src="'/file/' + item.name" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
               </template>
               <div class="image-overlay">
                 <div class="overlay-buttons">
@@ -127,87 +96,56 @@
                 <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
               </div>
             </el-card>
-            <el-card v-else class="audio-card"
-              :class="{ 'selected': item.selected }"
-              style="border-radius: 16px;"
-            >
-              <!-- 音频内容区域 -->
+            <!-- 音频文件 -->
+            <el-card v-else class="audio-card" :class="{ 'selected': item.selected }" style="border-radius: 16px;">
               <div class="audio-content">
-                <!-- 音频标题和时长 -->
+                <!-- 音频标题 -->
                 <div class="audio-header">
-                  <div class="audio-avatar">
-                    <img src="/static/admin-imgtc/music.png" alt="Music">
-                  </div>
+                  <div class="audio-avatar"><img src="/static/admin-imgtc/music.png" alt="Music"></div>
                   <div class="audio-info">
                     <div class="audio-title">{{ item.name }}</div>
                     <div class="audio-subtitle">Audio File</div>
                   </div>
                 </div>
-
                 <!-- 进度条 -->
                 <div class="audio-progress">
-                  <div class="progress-bar"
-                       ref="progressBar"
-                       @mousedown="startDragging($event, index)"
-                       @click.stop>
-                    <div class="progress-track"></div>
+                  <div class="progress-bar" ref="progressBar" @mousedown="startDragging($event, index)" @click.stop>
+                    <div class="progress-track" />
                     <div class="progress-current"
                          :style="{ width: isDragging && currentDraggingIndex === index ?
                                   draggingProgress[index] + '%' :
-                                  getProgress(index) + '%' }">
-                    </div>
+                                  getProgress(index) + '%' }" />
                     <div class="progress-handle"
                          :style="{ left: isDragging && currentDraggingIndex === index ?
                                   draggingProgress[index] + '%' :
-                                  getProgress(index) + '%' }">
-                    </div>
+                                  getProgress(index) + '%' }" />
                   </div>
                   <div class="time-display">
                     <span>{{ getCurrentTime(index) }}</span>
                     <span>{{ getDuration(index) }}</span>
                   </div>
                 </div>
-
                 <!-- 控制按钮区 -->
                 <div class="audio-controls">
-                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
-                    <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'" style="scale: 1.2;"></i>
-                  </button>
-                  <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)">
-                    <i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'" style="scale: 1.2;"></i>
-                  </button>
-                  <!-- 播放按钮 -->
-                  <button class="control-btn play-btn" @click.stop="togglePlay(index)">
-                    <i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i>
-                  </button>
-                  <button class="control-btn" @click.stop="handleCopy(index, item.name)">
-                    <i class="fas fa-link"></i>
-                  </button>
-                  <button class="control-btn" @click.stop="handleDelete(index, item.name)">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
+                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                  <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                  <button class="control-btn play-btn" @click.stop="togglePlay(index)"><i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i></button>
+                  <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-link"></i></button>
+                  <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
                 </div>
               </div>
               <audio
-                :ref="'audio-' + index"
-                :src="'/file/' + item.name"
-                @loadedmetadata="initAudio($event, index)"
-                @timeupdate="updateProgress($event, index)"
-                @ended="onAudioEnded(index)"
-                preload="metadata">
-              </audio>
+                :ref="'audio-' + index" :src="'/file/' + item.name"
+                @loadedmetadata="initAudio($event, index)" @timeupdate="updateProgress($event, index)"
+                @ended="onAudioEnded(index)" preload="metadata" />
             </el-card>
           </template>
         </div>
         <div class="pagination-container">
           <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="filteredTableData.length"
-            :page-size="pageSize"
-            @current-change="handlePageChange"
-            :current-page.sync="currentPage">
-          </el-pagination>
+            background layout="prev, pager, next"
+            :total="filteredTableData.length" :page-size="pageSize"
+            @current-change="handlePageChange" :current-page.sync="currentPage" />
         </div>
         <el-footer class="footer">
           <div>Powered By</div>
@@ -219,10 +157,8 @@
     </el-container>
   </div>
 </body>
-<!-- Import Vue before Element -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-<!-- Import JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script> <!-- Vue -->
+<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script> <!-- ElementUI -->
 <script>
   new Vue({
     el: '#app',
@@ -247,10 +183,10 @@
       sortOption: 'dateDesc',
       filterOption: 'all',
       fileType: 'image',
-      isDragging: false,
+      isDragging: false,  // 音频滚动条状态
       currentDraggingIndex: null,
       draggingProgress: {},
-      audioStates: {}, // 用于存储音频状态
+      audioStates: {},
     },
     computed: {
       filteredTableData() {
@@ -282,9 +218,10 @@
         return this.sortData(this.filteredTableData)
           .slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
       },
-      sortIcon() {
-        return `fas fa-sort-${this.sortOption === 'dateDesc' ? 'amount-down' : 'alpha-up'}`;
+      selectedFiles() {
+        return this.tableData.filter(file => file.selected);
       },
+      sortIcon() { return `fas fa-sort-${this.sortOption === 'dateDesc' ? 'amount-down' : 'alpha-up'}`; },
       filterIcon() {
         return this.filterOption === 'all' ? 'fas fa-filter' :
         this.filterOption === 'favorites' ? 'fas fa-bookmark' :
@@ -297,39 +234,34 @@
       }
     },
     watch: {  // 监听数据变化
-      tableData: { handler(newData) { this.selectedFiles = newData.filter(file => file.selected); }, deep: true },
       sortOption(newOption) { localStorage.setItem('sortOption', newOption); },
       filterOption(newOption) { localStorage.setItem('filterOption', newOption); }
     },
     methods: {
-      refreshDashboard() {
-        location.reload();
-      },
-      calculatePageSize() {
+      refreshDashboard() {location.reload();},  // 刷新页面
+      handleLogout() { window.location.href = '/'; },  // 退出登录
+      calculatePageSize() {  // 设置页面大小
         const config = {
           minSize: 15, // 最小页面卡片数
-          cardWidth: 240, // 卡片宽度
+          cardWidth: 240,
           ratio: 3/4, // 卡片高宽比
           gap: 20, // 卡片间距
-          defaultWidth: 800, // 默认宽度
-          defaultHeaderHeight: 60 // 默认头部高度
+          defaultWidth: 800,
+          defaultHeaderHeight: 60 // 默认Dashboard高度
         };
-
         // 获取容器尺寸
         const content = document.querySelector('.content');
         const header = document.querySelector('.header-content');
         const width = content?.clientWidth || config.defaultWidth;
         const height = window.innerHeight - (header?.offsetHeight || config.defaultHeaderHeight);
-
         // 计算行列数
         const cols = Math.floor(width / (config.cardWidth + config.gap));
         const cardHeight = (width / cols - config.gap) * config.ratio;
         const rows = Math.floor(height / (cardHeight + config.gap));
-
         // 设置页面大小
         this.pageSize = Math.max(rows * cols, config.minSize);
       },
-      updateWindowWidth() {
+      updateWindowWidth() {  // 动态调整页面大小
         this.windowWidth = window.innerWidth;
         this.calculatePageSize();
       },
@@ -337,6 +269,7 @@
         const fileIndex = this.tableData.findIndex(file => file.name === name);
         this.tableData[fileIndex].selected = !this.tableData[fileIndex].selected;
       },
+      // 音频相关
       startDragging(event, index) {
         event.preventDefault();
         this.isDragging = true;
@@ -384,6 +317,7 @@
         const percent = (x / rect.width) * 100;
         this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
       },
+      // 上传相关
       handleUpload() {
         this.$refs.fileInput.click();
       },
@@ -546,6 +480,7 @@
         // 清空文件输入，以便可以重复选择相同的文件
         event.target.value = '';
       },
+      // 批处理相关
       selectAllInPage() {
         const allSelected = this.paginatedTableData.every(file => file.selected);
         // 如果本页所有图片都已选中，则取消选中
@@ -555,8 +490,7 @@
           this.paginatedTableData.forEach(file => file.selected = true);
         }
       },
-      refreshFileList() {
-        // 重新获取文件列表
+      refreshFileList() {  // 刷新文件列表
         fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
           .then(response => response.json())
           .then(result => {
@@ -623,9 +557,6 @@
         document.body.removeChild(textarea);
         this.$message.success('批量复制链接成功~');
       },
-      handleLogout() {
-        window.location.href = '/';
-      },
       handleCopy(index, key) {
         const text = `${this.baseURL}/file/${key}`;
         navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
@@ -635,58 +566,27 @@
         this.currentPage = page;
       },
       toggleLike(index, name) {
-        console.log(`Toggling like for image: ${name}`);
-
-        // 找到对应文件的索引
+        console.log(`Toggling like for : ${name}`);
         const fileIndex = this.tableData.findIndex(file => file.name === name);
         if (fileIndex === -1) return;
-
         // 乐观更新收藏状态
-        if (this.tableData[fileIndex].metadata.liked === undefined) {
-          this.tableData[fileIndex].metadata.liked = false;
-        }
-        this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
-
+        this.tableData[fileIndex].metadata.liked = !(this.tableData[fileIndex].metadata.liked ?? false);
         // 发送请求更新服务器数据
-        var requestOptions = {
-          method: 'GET',
-          redirect: 'follow',
-          credentials: 'include'
-        };
-
+        var requestOptions = { method: 'GET', redirect: 'follow', credentials: 'include' };
         fetch(`./api/manage/toggleLike/${name}`, requestOptions)
           .then(response => response.json())
           .then(result => {
-            if (!result.success) {
-              // 如果服务器更新失败，将状态还原
+            if (!result.success) {  // 如果服务器更新失败，将状态还原
               this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
-              this.$message({
-                message: '更新收藏状态失败，请稍后重试',
-                type: 'error'
-              });
+              this.$message({message: '更新收藏状态失败，请稍后重试', type: 'error'});
             } else {
               this.$message.success(this.tableData[fileIndex].metadata.liked ? '收藏成功' : '取消收藏');
             }
           })
-          .catch(error => {
-            console.error("An error occurred while synchronizing data with the server", error);
-            // 如果服务器响应错误，将状态还原
+          .catch(error => { // 如果服务器响应错误，将状态还原
             this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
-            this.$message({
-              message: '同步服务器失败，请检查网络连接',
-              type: 'error'
-            });
+            this.$message({message: '同步服务器失败，请检查网络连接', type: 'error'});
           });
-      },
-      showFavorites() { // 筛选收藏图片
-        this.showFavorites = !this.showFavorites;
-        this.currentPage = 1;
-
-        this.$message({
-          message: (this.showFavorites ? '显示收藏' : '显示所有') + this.getFileTypeName(this.fileType),
-          type: 'success',
-          duration: 1500
-        });
       },
       updateStats() {
         this.Number = this.tableData.length;

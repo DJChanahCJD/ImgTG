@@ -283,6 +283,7 @@ body {
     gap: 10px;
   }
   .header-content{padding: 8px 12px;}
+  .stats{margin-left: auto;}
   .stats, .actions i{margin: 0;}
   .el-card{aspect-ratio: unset; min-height: 180px;}
   .el-card__body{padding: 0;}
@@ -498,9 +499,11 @@ body {
 .like-btn .liked {
   color: #FFD7E4;
 }
-
 .select-btn .selected {
   color: #8a4bff;
+}
+.like-btn i, .select-btn i {
+  scale: 1.2;
 }
 
 /* 移动端适配 */
