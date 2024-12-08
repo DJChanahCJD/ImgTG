@@ -101,7 +101,7 @@
               <div class="audio-content">
                 <!-- 音频标题 -->
                 <div class="audio-header">
-                  <div class="audio-avatar"><img src="/static/admin-imgtc/music.png" alt="Music"></div>
+                  <div class="audio-avatar"><img src="./music.png" alt="Music"></div>
                   <div class="audio-info">
                     <div class="audio-title">{{ item.name }}</div>
                     <div class="audio-subtitle">Audio File</div>
@@ -686,6 +686,7 @@
         .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
+      // 获取文件列表数据
       fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
         .then(response => response.json())
         .then(result => {
@@ -699,19 +700,13 @@
             }
           }));
           this.updateStats();
-          const savedSortOption = localStorage.getItem('sortOption');
-          if (savedSortOption) {
-            this.sortOption = savedSortOption;
-          }
+          // 恢复设置
+          this.sortOption = localStorage.getItem('sortOption') || this.sortOption;
           this.sortData(this.tableData);
+          this.fileType = localStorage.getItem('fileType') || this.fileType;
+          this.switchFileType(this.fileType);
         })
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-
-      // 恢复用户偏好的文件类型
-      const savedFileType = localStorage.getItem('fileType');
-      if (savedFileType) {
-        this.switchFileType(savedFileType);
-      }
     },
     beforeDestroy() {
       window.removeEventListener('resize', this.calculatePageSize);
