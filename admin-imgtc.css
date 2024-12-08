@@ -286,8 +286,8 @@ body {
   .search-card {display: none;}
 }
 
-/* 音频卡片基础样式 */
-.audio-card {
+/* 音视频卡片基础样式 */
+.video-card, .audio-card {
   background: linear-gradient(135deg, #8a4bffd9 0%, #6d82ffd9 100%);
   border: none;
   border-radius: 16px !important;
@@ -300,15 +300,15 @@ body {
   transition: transform 0.3s ease;
 }
 
-.audio-card.selected {
+.video-card.selected, .audio-card.selected {
   background: linear-gradient(135deg, rgba(138, 75, 255, 0.85) 0%, rgba(255, 215, 228, 0.85) 100%);
 }
 
-.audio-card:hover {
+.video-card:hover, .audio-card:hover {
   transform: scale(1.02);
 }
 
-.audio-content {
+.video-content, .audio-content {
   padding: 12px;
   color: white;
   width: 100%;
@@ -343,7 +343,7 @@ body {
   min-width: 0;
 }
 
-.audio-title {
+.video-title, .audio-title {
   font-size: 16px;
   font-weight: 500;
   max-width: 100%;
