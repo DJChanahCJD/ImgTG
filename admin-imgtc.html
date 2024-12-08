@@ -63,8 +63,15 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="全选当前页" placement="bottom"><i class="fas fa-check-square" @click="selectAllInPage"></i></el-tooltip>
-            <el-tooltip content="检测失效文件" placement="bottom"><i class="fas fa-wrench" @click="checkBrokenFiles"></i></el-tooltip>
+            <el-tooltip content="工具箱" placement="bottom">
+              <el-dropdown @command="handleToolkit" :hide-on-click="false">
+                <span class="el-dropdown-link"><i class="fas fa-toolbox"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="selectAllInPage"><i class="fas fa-check-square"></i> 全选当前页</el-dropdown-item>
+                  <el-dropdown-item command="checkBrokenFiles"><i class="fas fa-wrench"></i> 检测失效文件</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom"><i class="fas fa-home" @click="handleLogout"></i></el-tooltip>
           </div>
         </div>
@@ -93,7 +100,7 @@
             </template>
             <!-- 视频 -->
             <template v-else-if="fileType === 'video'">
-              <el-card class="video-card">
+              <el-card class="video-card" :class="{ 'selected': item.selected }">
                 <div class="video-content">
                   <video :src="'/file/' + item.name" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
                   <div class="video-title" :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</div>
@@ -530,6 +537,12 @@
           case 'delete': this.handleBatchDelete(); break;
           case 'block': this.handleBatchBlockOrUnblock('Block'); break;
           case 'unblock': this.handleBatchBlockOrUnblock('White'); break;
+        }
+      },
+      handleToolkit(command) {
+        switch (command) {
+          case 'checkBrokenFiles': this.checkBrokenFiles(); break;
+          case 'selectAllInPage': this.selectAllInPage(); break;
         }
       },
       // 工具相关
