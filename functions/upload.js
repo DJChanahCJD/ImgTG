@@ -77,7 +77,8 @@ export async function onRequestPost(context) {
                     'name': fileName,
                     'mime_type': mimeType,
                     'size': uploadFile.size,
-                    'pending': !filePath
+                    'pending': !filePath,
+                    "result": responseData
                 }]),
                 {
                     status: 200,
