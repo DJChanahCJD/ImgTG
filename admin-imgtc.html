@@ -223,9 +223,6 @@
         return this.sortData(this.filteredTableData)
           .slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
       },
-      selectedFiles() {
-        return this.tableData.filter(file => file.selected);
-      },
       sortIcon() { return `fas fa-sort-${this.sortOption === 'dateDesc' ? 'amount-down' : 'alpha-up'}`; },
       filterIcon() {
         return this.filterOption === 'all' ? 'fas fa-filter' :
@@ -239,6 +236,12 @@
       }
     },
     watch: {  // 监听数据变化
+      tableData: {
+        handler(newData) {
+          this.selectedFiles = newData.filter(file => file.selected);
+        },
+        deep: true
+      },
       sortOption(newOption) { localStorage.setItem('sortOption', newOption); },
       filterOption(newOption) { localStorage.setItem('filterOption', newOption); }
     },
@@ -625,7 +628,12 @@
       togglePlay(index) {  // 切换音频播放状态
         const audio = this.$refs[`audio-${index}`]?.[0];
         if (!audio) return;
-        // 可选：暂停其他正在播放的音频
+        // 暂停其他正在播放的音频
+        this.tableData.forEach((file, i) => {
+          if (i !== index && this.isPlaying(i)) {
+            this.$refs[`audio-${i}`]?.[0].pause();
+          }
+        });
         audio[audio.paused ? 'play' : 'pause']();
       },
       initAudio(event, index) {  // 初始化音频
@@ -638,6 +646,7 @@
       },
       onAudioEnded(index) {  // 音频播放结束
         this.$set(this.audioStates, `currentTime-${index}`, 0);
+        this.togglePlay(index + 1);
       },
       getCurrentTime(index) {  // 获取当前音频时间
         const time = this.audioStates[`currentTime-${index}`] || 0;
