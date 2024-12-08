@@ -348,7 +348,7 @@
               if (!res.ok || (Array.isArray(data) && data[0]?.error)) {
                 throw new Error(data[0]?.error || '上传失败');
               }
-              
+
               const src = data[0]?.src;
               if (!src) throw new Error('未返回文件路径');
 

@@ -10,7 +10,7 @@ export async function onRequestPost(context) {
         const uploadFile = formData.get('file');
         console.log('Upload file size:', uploadFile.size);
 
-        // 对于大文件，先获取文件链接
+        // 对于大文件，使用 sendDocument
         if (uploadFile.size > 20 * 1024 * 1024) { // 20MB
             const telegramFormData = new FormData();
             telegramFormData.append("chat_id", env.TG_Chat_ID);
@@ -25,53 +25,59 @@ export async function onRequestPost(context) {
                     body: telegramFormData
                 }
             );
-
+            console.log('Telegram response:', response);
             const responseData = await response.json();
-            console.log('Telegram response:', responseData);
+            console.log('Telegram upload response:', responseData);
 
-            if (!response.ok) {
+            if (!response.ok || !responseData.ok) {
                 throw new Error(responseData.description || 'Upload failed');
             }
 
-            // 获取文件ID
+            // 获取文件ID和原始文件名
             const fileId = responseData.result?.document?.file_id;
+            const fileName = uploadFile.name;
+            const mimeType = uploadFile.type;
+
             if (!fileId) {
                 throw new Error('Failed to get file ID from Telegram');
             }
 
-            // 获取文件链接
-            const fileInfoResponse = await fetch(
-                `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`
-            );
+            // 尝试最多3次获取文件信息
+            let filePath = null;
+            let attempts = 3;
 
-            const fileInfo = await fileInfoResponse.json();
-            console.log('File info response:', fileInfo);
+            while (attempts > 0 && !filePath) {
+                try {
+                    // 等待一段时间再尝试获取文件信息
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
-            if (!fileInfoResponse.ok || !fileInfo.ok) {
-                throw new Error('Failed to get file info from Telegram');
-            }
+                    const fileInfoResponse = await fetch(
+                        `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`
+                    );
 
-            const filePath = fileInfo.result?.file_path;
-            if (!filePath) {
-                // 如果没有立即获取到 file_path，仍然返回文件 ID
-                return new Response(
-                    JSON.stringify([{
-                        'src': `/file/${fileId}.${uploadFile.name.split('.').pop()}`,
-                        'size': uploadFile.size,
-                        'pending': true  // 标记为待处理状态
-                    }]),
-                    {
-                        status: 200,
-                        headers: { 'Content-Type': 'application/json' }
+                    const fileInfo = await fileInfoResponse.json();
+                    console.log('File info response:', fileInfo);
+
+                    if (fileInfoResponse.ok && fileInfo.ok && fileInfo.result?.file_path) {
+                        filePath = fileInfo.result.file_path;
+                        break;
                     }
-                );
+                } catch (error) {
+                    console.error('Get file info attempt failed:', error);
+                }
+                attempts--;
             }
 
+            // 即使没有获取到 file_path，也返回成功，但标记为待处理
             return new Response(
                 JSON.stringify([{
-                    'src': `/file/${fileId}.${uploadFile.name.split('.').pop()}`,
+                    'src': `/file/${fileId}.${fileName.split('.').pop()}`,
+                    'file_id': fileId,
                     'telegram_path': filePath,
-                    'size': uploadFile.size
+                    'name': fileName,
+                    'mime_type': mimeType,
+                    'size': uploadFile.size,
+                    'pending': !filePath
                 }]),
                 {
                     status: 200,
@@ -143,7 +149,7 @@ export async function onRequestPost(context) {
             JSON.stringify({
                 error: error.message,
                 stack: error.stack,
-                detail: '文件上传到 Telegram 成功，但获取文件信息失败'
+                detail: '文件上传过程中出现错误'
             }),
             {
                 status: 500,
