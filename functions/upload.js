@@ -44,7 +44,8 @@ export async function onRequestPost(context) {
             return new Response(
                 JSON.stringify([{
                     'src': `/file/${fileId}.${uploadFile.name.split('.').pop()}`,
-                    'telegram_path': fileLink.result.file_path
+                    'telegram_path': fileLink.result.file_path,
+                    'size': uploadFile.size
                 }]),
                 {
                     status: 200,
