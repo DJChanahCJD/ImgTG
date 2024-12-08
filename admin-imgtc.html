@@ -110,22 +110,22 @@
                 <!-- 进度条 -->
                 <div class="audio-progress">
                   <div class="progress-bar" ref="progressBar" @mousedown="startDragging($event, index)" @click.stop>
-                    <div class="progress-track" />
-                    <div class="progress-current"
-                         :style="{ width: isDragging && currentDraggingIndex === index ?
-                                  draggingProgress[index] + '%' :
-                                  getProgress(index) + '%' }" />
-                    <div class="progress-handle"
-                         :style="{ left: isDragging && currentDraggingIndex === index ?
-                                  draggingProgress[index] + '%' :
-                                  getProgress(index) + '%' }" />
+                    <div class="progress-track">
+                      <div class="progress-current"
+                           :style="{ width: isDragging && currentDraggingIndex === index ?
+                                    draggingProgress[index] + '%' :
+                                    getProgress(index) + '%' }"></div>
+                      <div class="progress-handle"
+                           :style="{ left: isDragging && currentDraggingIndex === index ?
+                                    draggingProgress[index] + '%' :
+                                    getProgress(index) + '%' }"></div>
+                    </div>
                   </div>
                   <div class="time-display">
                     <span>{{ getCurrentTime(index) }}</span>
                     <span>{{ getDuration(index) }}</span>
                   </div>
                 </div>
-                <!-- 控制按钮区 -->
                 <div class="audio-controls">
                   <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
                   <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
