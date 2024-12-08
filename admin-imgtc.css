@@ -378,10 +378,14 @@ body {
   background: transparent;
 }
 
-
+.audio-controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
 .control-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border: none;
   border-radius: 50%;
@@ -411,15 +415,7 @@ body {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
-  .audio-card {
-    max-height: none;
-  }
-
-  .custom-audio-player {
-    height: 32px;
-  }
-
-  .audio-controls {
-    gap: 12px;
-  }
+  .audio-card { max-height: none; }
+  .custom-audio-player {height: 32px;}
+  .audio-controls {gap: 16px;}
 }
