@@ -377,21 +377,38 @@ body {
 .custom-audio-player::-webkit-media-controls-progress-bar {
   background: transparent;
 }
+
+/* 进度条滑块和已播放部分 */
+.custom-audio-player::-webkit-media-controls-timeline {
+  background: transparent;
+  color: white;
+}
+
+.custom-audio-player::-webkit-media-controls-timeline::-webkit-slider-thumb {
+  background: white;
+}
+
+.custom-audio-player::-webkit-media-controls-timeline::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.8);
+}
+
 /* 播放按钮和其他控制按钮 */
 .custom-audio-player::-webkit-media-controls-play-button,
 .custom-audio-player::-webkit-media-controls-mute-button {
-  filter: invert(1); /* 浅紫色 */
+  filter: invert(1); /* 白色 */
 }
 
-/* 更多选项按钮 */
+/* 更多选项按钮 - 确保是白色 */
 .custom-audio-player::-webkit-media-controls-toggle-closed-captions-button,
-.custom-audio-player::-webkit-media-controls-overflow-button {
-  filter: invert(1); /* 纯白色 */
+.custom-audio-player::-webkit-media-controls-overflow-button,
+.custom-audio-player::-webkit-media-controls-fullscreen-button,
+.custom-audio-player::-webkit-media-controls-settings-button {
+  filter: invert(1) brightness(2) !important; /* 增强白色效果 */
 }
 
 .custom-audio-player::-webkit-media-controls-current-time-display,
 .custom-audio-player::-webkit-media-controls-time-remaining-display {
-  color: #fff; /* 时间显示文字颜色 */
+  color: #fff;
 }
 
 /* 控制面板背景 */
@@ -404,13 +421,22 @@ body {
   background: transparent;
 }
 
-/* 进度条已播放部分 */
-.custom-audio-player::-webkit-media-controls-timeline {
-  background: transparent;
+.custom-audio-player::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+  background: white;
 }
+
+.custom-audio-player::-webkit-media-controls-volume-slider::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.8);
+}
+
 /* 控制面板背景 */
 .custom-audio-player::-webkit-media-controls-panel {
   background: transparent !important;
+}
+
+/* 确保所有控制按钮都是白色 */
+.custom-audio-player::-webkit-media-controls-button {
+  filter: invert(1) brightness(2) !important;
 }
 
 .audio-controls {
@@ -418,6 +444,15 @@ body {
   justify-content: center;
   gap: 20px;
 }
+
+.like-btn i, .select-btn i {
+  font-size: 1.2em;
+}
+
+.like-btn .liked, .select-btn .selected {
+  color: #FFD7E4;
+}
+
 .control-btn {
   width: 40px;
   height: 40px;
@@ -438,14 +473,6 @@ body {
 .control-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: scale(1.05);
-}
-
-.like-btn i, .select-btn i {
-  scale: 1.2;
-}
-
-.like-btn .liked, .select-btn .selected {
-  color: #FFD7E4;
 }
 
 /* 移动端适配 */
