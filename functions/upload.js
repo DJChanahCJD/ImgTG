@@ -7,13 +7,54 @@ export async function onRequestPost(context) {
         const clonedRequest = request.clone();
         const formData = await clonedRequest.formData();
 
+        const uploadFile = formData.get('file');
+        console.log('Upload file size:', uploadFile.size);
+
+        // 对于大文件，先获取文件链接
+        if (uploadFile.size > 20 * 1024 * 1024) { // 20MB
+            const telegramFormData = new FormData();
+            telegramFormData.append("chat_id", env.TG_Chat_ID);
+            telegramFormData.append("document", uploadFile);
+
+            console.log('Uploading large file to Telegram...');
+
+            const response = await fetch(
+                `https://api.telegram.org/bot${env.TG_Bot_Token}/sendDocument`,
+                {
+                    method: "POST",
+                    body: telegramFormData
+                }
+            );
+
+            const responseData = await response.json();
+            console.log('Telegram response:', responseData);
+
+            if (!response.ok) {
+                throw new Error(responseData.description || 'Upload failed');
+            }
+
+            // 获取文件链接
+            const fileId = responseData.result.document.file_id;
+            const fileLink = await fetch(
+                `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`
+            ).then(res => res.json());
+
+            console.log('File link:', fileLink);
+
+            return new Response(
+                JSON.stringify([{
+                    'src': `/file/${fileId}.${uploadFile.name.split('.').pop()}`,
+                    'telegram_path': fileLink.result.file_path
+                }]),
+                {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+
         await errorHandling(context);
         telemetryData(context);
-
-        const uploadFile = formData.get('file');
-        if (!uploadFile) {
-            throw new Error('No file uploaded');
-        }
 
         const fileName = uploadFile.name;
         const fileExtension = fileName.split('.').pop().toLowerCase();
@@ -72,7 +113,7 @@ export async function onRequestPost(context) {
     } catch (error) {
         console.error('Upload error:', error);
         return new Response(
-            JSON.stringify({ error: error.message }),
+            JSON.stringify({ error: error.message, stack: error.stack }),
             {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }
