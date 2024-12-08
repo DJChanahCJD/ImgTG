@@ -291,7 +291,7 @@ body {
 }
 
 /* 音频卡片基础样式 */
-el-card .audio-card {
+.el-card .audio-card {
   background: linear-gradient(135deg, #8a4bffd9 0%, #6d82ffd9 100%);
   border: none;
   border-radius: 16px;
