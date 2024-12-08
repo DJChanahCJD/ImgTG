@@ -288,6 +288,7 @@ body {
   .el-card{aspect-ratio: unset; min-height: 180px;}
   .el-card__body{padding: 0;}
   .search-card {display: none;}
+  .header-content .actions{margin: 0 4px;}
 }
 
 /* 音视频卡片基础样式 */
@@ -305,11 +306,15 @@ body {
 }
 
 .video-card{
-  background: linear-gradient(135deg, #ae4bffd9 0%, #6db1ffd9 100%);
+  background: linear-gradient(135deg, rgba(178, 107, 255, 0.85) 0%, rgba(138, 180, 255, 0.85) 100%);
 }
 
-.video-card.selected, .audio-card.selected {
+.audio-card.selected {
   background: linear-gradient(135deg, rgba(138, 75, 255, 0.85) 0%, rgba(255, 215, 228, 0.85) 100%);
+}
+
+.video-card.selected {
+  background: linear-gradient(135deg, rgba(186, 104, 255, 0.85) 0%, rgba(111, 163, 252, 0.85) 100%);
 }
 
 .video-card:hover, .audio-card:hover {
