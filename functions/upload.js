@@ -49,6 +49,8 @@ export async function onRequestPost(context) {
 
         const responseData = await response.json();
 
+        console.log('Response data:', responseData);
+
         if (!response.ok) {
             console.error('Error response from Telegram API:', responseData);
             throw new Error(responseData.description || 'Upload to Telegram failed');
