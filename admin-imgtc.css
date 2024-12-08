@@ -374,7 +374,7 @@ body {
 
 /* 进度条样式 */
 .custom-audio-player::-webkit-media-controls-progress-bar {
-  background: rgba(255, 255, 255, 0.3); /* 更柔和的进度条背景 */
+  background: transparent;
 }
 
 .custom-audio-player::-webkit-media-controls-current-time-display,
@@ -387,20 +387,18 @@ body {
   background: transparent;
 }
 
-/* 播放按钮和其他控制按钮 */
-.custom-audio-player::-webkit-media-controls-play-button,
-.custom-audio-player::-webkit-media-controls-mute-button {
-  filter: invert(1) brightness(1.8) hue-rotate(215deg); /* 将黑色图标转换为浅紫色 */
-}
-
 /* 音量滑块 */
 .custom-audio-player::-webkit-media-controls-volume-slider {
-  background-color: rgba(255, 255, 255, 0.3);
+  background: transparent;
 }
 
 /* 进度条已播放部分 */
 .custom-audio-player::-webkit-media-controls-timeline {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+/* 控制面板背景 */
+.custom-audio-player::-webkit-media-controls-panel {
+  background: transparent !important;
 }
 
 .audio-controls {
