@@ -45,13 +45,14 @@ export async function onRequestPost(context) {
             // 尝试最多3次获取文件信息
             let filePath = null;
             let attempts = 3;
+            let fileInfoResponse = null;
 
             while (attempts > 0 && !filePath) {
                 try {
                     // 等待一段时间再尝试获取文件信息
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
-                    const fileInfoResponse = await fetch(
+                    fileInfoResponse = await fetch(
                         `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`,
                         {
                             method: 'GET',
