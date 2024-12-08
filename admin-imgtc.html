@@ -94,7 +94,12 @@
                 </div>
               </div>
               <div class="card-footer">
-                <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                <el-popover trigger="hover" placement="top">
+                  <p>{{ item.metadata }}</p>
+                  <div slot="reference">
+                    <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                  </div>
+                </el-popover>
               </div>
               </el-card>
             </template>
@@ -103,7 +108,14 @@
               <el-card class="video-card" :class="{ 'selected': item.selected }">
                 <div class="video-content">
                   <video :src="'/file/' + item.name" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
-                  <div class="video-title" :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</div>
+                  <div class="video-title">
+                    <el-popover trigger="hover" placement="top">
+                      <p>{{ item.metadata }}</p>
+                      <div slot="reference">
+                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                      </div>
+                    </el-popover>
+                  </div>
                     <!-- 控制按钮区域 -->
                   <div class="video-controls">
                     <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
@@ -132,11 +144,17 @@
                       <img src="./music.svg" alt="Music">
                     </div>
                     <div class="audio-info">
-                      <div class="audio-title">{{ item.name }}</div>
+                      <div class="audio-title">
+                        <el-popover trigger="hover" placement="top">
+                          <p>{{ item.metadata }}</p>
+                          <div slot="reference">
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                          </div>
+                        </el-popover>
+                      </div>
                       <div class="audio-subtitle">Audio File</div>
                     </div>
                   </div>
-                  <!-- 使用原生audio元素 -->
                   <audio
                     class="custom-audio-player"
                     :src="'/file/' + item.name"
