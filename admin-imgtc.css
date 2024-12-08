@@ -287,7 +287,6 @@ body {
   .el-card{aspect-ratio: unset; min-height: 180px;}
   .el-card__body{padding: 0;}
   .search-card {display: none;}
-  .header-content .actions i:first-child{margin-left: auto;}
   .header-content .actions i{margin: 0 4px;}
 }
 
