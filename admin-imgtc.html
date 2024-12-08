@@ -97,48 +97,47 @@
               </div>
             </el-card>
             <!-- 音频文件 -->
-            <el-card v-else class="audio-card" :class="{ 'selected': item.selected }" style="border-radius: 16px;">
-              <div class="audio-content">
-                <!-- 音频标题 -->
-                <div class="audio-header">
-                  <div class="audio-avatar"><img src="./music.png" alt="Music"></div>
-                  <div class="audio-info">
-                    <div class="audio-title">{{ item.name }}</div>
-                    <div class="audio-subtitle">Audio File</div>
-                  </div>
-                </div>
-                <!-- 进度条 -->
-                <div class="audio-progress">
-                  <div class="progress-bar" ref="progressBar" @mousedown="handleProgressBarMousedown($event, index)" @click.stop>
-                    <div class="progress-track">
-                      <div class="progress-current"
-                           :style="{ width: isDragging && currentDraggingIndex === index ?
-                                    draggingProgress[index] + '%' :
-                                    getProgress(index) + '%' }"></div>
-                      <div class="progress-handle"
-                           :style="{ left: isDragging && currentDraggingIndex === index ?
-                                    draggingProgress[index] + '%' :
-                                    getProgress(index) + '%' }"></div>
+            <template v-else>
+              <el-card class="audio-card" :class="{ 'selected': item.selected }">
+                <div class="audio-content">
+                  <!-- 音频标题区域 -->
+                  <div class="audio-header">
+                    <div class="audio-avatar">
+                      <img src="./music.png" alt="Music">
+                    </div>
+                    <div class="audio-info">
+                      <div class="audio-title">{{ item.name }}</div>
+                      <div class="audio-subtitle">Audio File</div>
                     </div>
                   </div>
-                  <div class="time-display">
-                    <span>{{ getCurrentTime(index) }}</span>
-                    <span>{{ getDuration(index) }}</span>
+
+                  <!-- 使用原生audio元素 -->
+                  <audio
+                    class="custom-audio-player"
+                    :src="'/file/' + item.name"
+                    controls
+                    preload="metadata">
+                    您的浏览器不支持音频播放
+                  </audio>
+
+                  <!-- 控制按钮区域 -->
+                  <div class="audio-controls">
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
+                      <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
+                    </button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)">
+                      <i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i>
+                    </button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)">
+                      <i class="fas fa-link"></i>
+                    </button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
                   </div>
                 </div>
-                <div class="audio-controls">
-                  <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
-                  <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
-                  <button class="control-btn play-btn" @click.stop="togglePlay(index)"><i :class="isPlaying(index) ? 'fas fa-pause' : 'fas fa-play'"></i></button>
-                  <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-link"></i></button>
-                  <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
-                </div>
-              </div>
-              <audio
-                :ref="'audio-' + index" :src="'/file/' + item.name"
-                @loadedmetadata="initAudio($event, index)" @timeupdate="updateProgress($event, index)"
-                @ended="onAudioEnded(index)" preload="metadata" />
-            </el-card>
+              </el-card>
+            </template>
           </template>
         </div>
         <div class="pagination-container">
@@ -191,20 +190,7 @@
       isDragging: false,  // 音频滚动条状态
       currentDraggingIndex: null,
       draggingProgress: {},
-      audioStates: new Map(), // 存储所有音频状态
-      audioPlayer: {
-        currentFile: null,    // 当前播放的文件名
-        isPlaying: false,     // 播放状态
-        currentTime: 0,       // 当前播放时间
-        duration: 0,          // 音频总时长
-      },
-      progressState: {
-        isDragging: false,    // 是否正在拖拽
-        activeIndex: null,    // 当前操作的索引
-        startX: 0,            // 拖拽起始位置
-        barWidth: 0,          // 进度条宽度
-        startProgress: 0,     // 开始拖拽时的进度
-      },
+      audioStates: {},
     },
     computed: {
       filteredTableData() {
@@ -588,180 +574,116 @@
         });
       },
       // 音频相关
-      handleProgressBarMousedown(event, index) {
+      startDragging(event, index) {
         event.preventDefault();
-        const progressBar = this.$refs.progressBar[index];
+        this.isDragging = true;
+        this.currentDraggingIndex = index;
+
+        // 添加全局事件监听
+        document.addEventListener('mousemove', this.onDragging);
+        document.addEventListener('mouseup', this.stopDragging);
+
+        // 初始化拖动位置
+        this.updateDraggingProgress(event);
+      },
+      onDragging(event) {
+        if (!this.isDragging) return;
+
+        // 获取进度条元素
+        const progressBar = this.$refs.progressBar[this.currentDraggingIndex];
         if (!progressBar) return;
 
         const rect = progressBar.getBoundingClientRect();
-        this.progressState = {
-          isDragging: true,
-          activeIndex: index,
-          startX: event.clientX,
-          barWidth: rect.width,
-          startProgress: this.getProgress(index)
-        };
+        const x = event.clientX - rect.left;
+        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
 
-        // 添加全局事件监听
-        window.addEventListener('mousemove', this.handleProgressBarDrag);
-        window.addEventListener('mouseup', this.handleProgressBarMouseup);
+        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
       },
-
-      handleProgressBarDrag(event) {
-        if (!this.progressState.isDragging) return;
-
-        const { startX, barWidth, startProgress } = this.progressState;
-        const deltaX = event.clientX - startX;
-        const deltaProgress = (deltaX / barWidth) * 100;
-
-        // 计算新进度
-        const newProgress = Math.max(0, Math.min(100, startProgress + deltaProgress));
-
-        // 更新进度状态
-        this.$set(this.audioStates,
-          `progress-${this.progressState.activeIndex}`,
-          newProgress
-        );
-      },
-
-      handleProgressBarMouseup() {
-        if (!this.progressState.isDragging) return;
-
-        const { activeIndex } = this.progressState;
-        const audio = this.$refs[`audio-${activeIndex}`]?.[0];
-        if (audio) {
-          const progress = this.audioStates.get(`progress-${activeIndex}`) || 0;
-          audio.currentTime = (progress / 100) * audio.duration;
-        }
-
-        // 清理状态和事件监听
-        this.progressState = {
-          isDragging: false,
-          activeIndex: null,
-          startX: 0,
-          barWidth: 0,
-          startProgress: 0
-        };
-
-        window.removeEventListener('mousemove', this.handleProgressBarDrag);
-        window.removeEventListener('mouseup', this.handleProgressBarMouseup);
-      },
-
-      // 音频播放控制
-      async togglePlay(index) {
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        const file = this.tableData[index];
-
-        if (!audio || !file) return;
-
-        try {
-          if (this.audioPlayer.currentFile && this.audioPlayer.currentFile !== file.name) {
-            // 停止当前播放的音频
-            await this.stopCurrentAudio();
-          }
-
-          if (audio.paused) {
-            await audio.play();
-            this.audioPlayer = {
-              currentFile: file.name,
-              isPlaying: true,
-              currentTime: audio.currentTime,
-              duration: audio.duration
-            };
-          } else {
-            await audio.pause();
-            this.audioPlayer.isPlaying = false;
-          }
-        } catch (err) {
-          console.error('Audio playback error:', err);
-          this.$message.error('播放出错，请重试');
-        }
-      },
-
-      async stopCurrentAudio() {
-        if (!this.audioPlayer.currentFile) return;
-
-        const currentIndex = this.tableData.findIndex(
-          file => file.name === this.audioPlayer.currentFile
-        );
-
-        if (currentIndex !== -1) {
-          const audio = this.$refs[`audio-${currentIndex}`]?.[0];
+      stopDragging() {
+        if (this.isDragging) {
+          const audio = this.$refs[`audio-${this.currentDraggingIndex}`]?.[0];
           if (audio) {
-            await audio.pause();
-            this.audioPlayer.isPlaying = false;
+            const progress = this.draggingProgress[this.currentDraggingIndex] || 0;
+            audio.currentTime = (progress / 100) * audio.duration;
           }
         }
+        // 清理状态和事件监听
+        this.isDragging = false;
+        this.currentDraggingIndex = null;
+        document.removeEventListener('mousemove', this.onDragging);
+        document.removeEventListener('mouseup', this.stopDragging);
       },
-
-      // 进度条点击跳转
-      handleProgressBarClick(event, index) {
-        if (this.progressState.isDragging) return;
-
+      updateDraggingProgress(event) {
+        const progressBar = event.currentTarget;
+        const rect = progressBar.getBoundingClientRect();
+        const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
+        const percent = (x / rect.width) * 100;
+        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
+      },
+      isPlaying(index) {  // 判断音频是否正在播放
+        const audio = this.$refs[`audio-${index}`]?.[0];
+        return audio ? !audio.paused : false;
+      },
+      togglePlay(index) {  // 切换音频播放状态
         const audio = this.$refs[`audio-${index}`]?.[0];
         if (!audio) return;
-
-        const rect = event.currentTarget.getBoundingClientRect();
-        const clickX = event.clientX - rect.left;
-        const percent = clickX / rect.width;
-
-        // 使用 requestAnimationFrame 避免视觉抽搐
-        requestAnimationFrame(() => {
-          const newTime = percent * audio.duration;
-          audio.currentTime = newTime;
-          this.updateAudioState(index, newTime);
+        // 暂停其他正在播放的音频
+        this.tableData.forEach((file, i) => {
+          if (i !== index && this.isPlaying(i)) {
+            this.$refs[`audio-${i}`]?.[0].pause();
+          }
         });
+        audio[audio.paused ? 'play' : 'pause']();
       },
+      initAudio(event, index, name) {  // 初始化音频
+        const audio = event.target;
+        this.$set(this.audioStates, `duration-${index}`, this.formatTime(audio.duration));
+      },
+      updateProgress(event, index) {  // 更新音频进度
+        const audio = event.target;
+        this.$set(this.audioStates, `currentTime-${index}`, audio.currentTime);
+      },
+      onAudioEnded(index) {  // 音频播放结束
+        this.$set(this.audioStates, `currentTime-${index}`, 0);
+        this.togglePlay(index + 1);
+      },
+      getCurrentTime(index) {  // 获取当前音频时间
+        const time = this.audioStates[`currentTime-${index}`] || 0;
+        return this.formatTime(time);
+      },
+      getDuration(index) {  // 获取音频时长
+        return this.audioStates[`duration-${index}`] || '0:00';
+      },
+      getDraggingProgress(index) {  // 获取拖拽进度
+        if (this.isDragging && this.currentDraggingIndex === index) {
+          return this.draggingProgress[index] || 0;
+        }
+        return this.getProgress(index);
+      },
+      getProgress(index) {  // 获取音频进度
+        const currentTime = this.audioStates[`currentTime-${index}`] || 0;
+        const audio = this.$refs[`audio-${index}`]?.[0];
+        if (!audio) return 0;
+        return (currentTime / audio.duration) * 100 || 0;
+      },
+      seekAudio(event, index) {  // 拖拽音频进度
+        if (this.isDragging) return;
 
-      // 更新音频状态
-      updateAudioState(index, currentTime) {
         const audio = this.$refs[`audio-${index}`]?.[0];
         if (!audio) return;
 
-        const file = this.tableData[index];
-        const state = {
-          currentTime,
-          duration: audio.duration,
-          progress: (currentTime / audio.duration) * 100
-        };
+        const progressBar = event.currentTarget;
+        const rect = progressBar.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const percent = x / rect.width;
 
-        this.audioStates.set(`state-${index}`, state);
-
-        if (file.name === this.audioPlayer.currentFile) {
-          this.audioPlayer.currentTime = currentTime;
-        }
+        audio.currentTime = percent * audio.duration;
       },
-
-      // 获取音频进度
-      getProgress(index) {
-        if (this.progressState.isDragging && this.progressState.activeIndex === index) {
-          return this.audioStates.get(`progress-${index}`) || 0;
-        }
-
-        const state = this.audioStates.get(`state-${index}`);
-        return state ? state.progress : 0;
+      formatTime(seconds) {  // 格式化时间
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
       },
-
-      // 音频事件处理
-      handleAudioTimeUpdate(event, index) {
-        if (!this.progressState.isDragging) {
-          this.updateAudioState(index, event.target.currentTime);
-        }
-      },
-
-      handleAudioEnded(index) {
-        this.updateAudioState(index, 0);
-        // 可以添加自动播放下一首的逻辑
-        this.playNext(index);
-      },
-
-      // 播放下一首
-      playNext(currentIndex) {
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < this.tableData.length) {
-          this.togglePlay(nextIndex);
-        }
-      }
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);

@@ -290,7 +290,7 @@ body {
   .search-card {display: none;}
 }
 
-/* 音频卡片样式 */
+/* 音频卡片基础样式 */
 .audio-card {
   background: linear-gradient(135deg, #8a4bffd9 0%, #6d82ffd9 100%);
   border: none;
@@ -301,30 +301,62 @@ body {
   align-items: center;
   max-height: 256px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
 }
 
 .audio-card.selected {
   background: linear-gradient(135deg, rgba(138, 75, 255, 0.85) 0%, rgba(255, 215, 228, 0.85) 100%);
 }
 
-/* 选中状态样式 */
 .audio-card:hover {
   transform: scale(1.02);
 }
 
+/* 自定义audio元素样式 */
+.custom-audio-player {
+  width: 100%;
+  height: 36px;
+  margin: 15px 0;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 自定义audio控件样式 */
+.custom-audio-player::-webkit-media-controls-panel {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+}
+
+.custom-audio-player::-webkit-media-controls-play-button,
+.custom-audio-player::-webkit-media-controls-mute-button {
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.custom-audio-player::-webkit-media-controls-current-time-display,
+.custom-audio-player::-webkit-media-controls-time-remaining-display {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.custom-audio-player::-webkit-media-controls-timeline {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  height: 4px;
+}
+
+/* 保留原有的其他样式 */
 .audio-content {
   padding: 12px;
   color: white;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .audio-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .audio-avatar {
@@ -500,21 +532,15 @@ body {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
-  .audio-content {
-    padding: 15px;
+  .audio-card {
+    max-height: none;
+  }
+
+  .custom-audio-player {
+    height: 32px;
   }
 
   .audio-controls {
     gap: 12px;
-  }
-
-  .control-btn {
-    width: 32px;
-    height: 32px;
-  }
-
-  .play-btn {
-    width: 42px;
-    height: 42px;
   }
 }
