@@ -318,39 +318,100 @@ body {
   height: 36px;
   margin: 15px 0;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.1);
 }
 
 /* 自定义audio控件样式 */
 .custom-audio-player::-webkit-media-controls-panel {
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent !important;
   border-radius: 18px;
+  padding: 0 8px;
 }
 
-.custom-audio-player::-webkit-media-controls-play-button,
-.custom-audio-player::-webkit-media-controls-mute-button {
-  border-radius: 50%;
+.custom-audio-player::-webkit-media-controls-enclosure {
+  border-radius: 18px;
+  background: transparent !important;
+}
+
+/* 美化播放按钮 */
+.custom-audio-player::-webkit-media-controls-play-button {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  transition: all 0.3s ease;
 }
 
+.custom-audio-player::-webkit-media-controls-play-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* 美化静音按钮 */
+.custom-audio-player::-webkit-media-controls-mute-button {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+}
+
+.custom-audio-player::-webkit-media-controls-mute-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* 美化时间显示 */
 .custom-audio-player::-webkit-media-controls-current-time-display,
 .custom-audio-player::-webkit-media-controls-time-remaining-display {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Arial', sans-serif;
+  font-size: 12px;
+  margin: 0 4px;
 }
 
+/* 美化进度条 */
 .custom-audio-player::-webkit-media-controls-timeline {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  border-radius: 4px;
   height: 4px;
+  margin: 0 8px;
+  overflow: hidden;
 }
 
-/* 保留原有的其他样式 */
+.custom-audio-player::-webkit-media-controls-timeline::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* 美化音量滑块 */
+.custom-audio-player::-webkit-media-controls-volume-slider {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  height: 4px;
+  padding: 0;
+}
+
+.custom-audio-player::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* 音频内容容器 */
 .audio-content {
   padding: 12px;
   color: white;
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .audio-header {
@@ -394,90 +455,13 @@ body {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.audio-progress {
-  margin: 20px 0;
-}
-
-.progress-bar {
-  position: relative;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  cursor: pointer;
-  margin-bottom: 8px;
-  -webkit-user-select: none;
-  user-select: none;
-  touch-action: none;
-}
-
-.progress-handle {
-  position: absolute;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-}
-
-.progress-bar:hover .progress-handle,
-.progress-bar.dragging .progress-handle {
-  opacity: 1;
-  transform: scale(1.2) translate(-50%, -50%);
-}
-.progress-current,
-.progress-handle {
-  pointer-events: none;
-}
-
-.progress-track {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-}
-
-.progress-current {
-  position: absolute;
-  height: 100%;
-  background: white;
-  border-radius: 2px;
-}
-
-.progress-handle {
-  position: absolute;
-  top: 50%;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.progress-bar:hover .progress-handle {
-  opacity: 1;
-}
-
-.time-display {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
+/* 控制按钮样式 */
 .audio-controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
+  margin-top: 15px;
 }
 
 .control-btn {
@@ -493,8 +477,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  flex-shrink: 0;
-  z-index: 1; /* 确保按钮可点击 */
+  z-index: 1;
 }
 
 .control-btn:hover {
@@ -502,28 +485,8 @@ body {
   transform: scale(1.05);
 }
 
-.play-btn {
-  width: 48px;
-  height: 48px;
-  background: white;
-  color: #8a4bff;
-}
-
-.play-btn:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.play-btn i {
-  font-size: 18px;
-  margin-left: 2px; /* 稍微调整播放图标的位置 */
-}
-
 .like-btn i, .select-btn i {
   scale: 1.2;
-}
-
-.like-btn {
-  color: white;
 }
 
 .like-btn .liked, .select-btn .selected {
@@ -542,5 +505,15 @@ body {
 
   .audio-controls {
     gap: 12px;
+  }
+
+  .custom-audio-player::-webkit-media-controls-play-button {
+    width: 24px;
+    height: 24px;
+  }
+
+  .custom-audio-player::-webkit-media-controls-mute-button {
+    width: 20px;
+    height: 20px;
   }
 }

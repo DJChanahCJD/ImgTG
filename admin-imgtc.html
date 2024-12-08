@@ -117,7 +117,7 @@
                     :src="'/file/' + item.name"
                     controls
                     preload="metadata">
-                    您的浏览器不支持音频播放
+                    当前浏览器不支持音频播放
                   </audio>
 
                   <!-- 控制按钮区域 -->
@@ -187,10 +187,6 @@
       sortOption: 'dateDesc',
       filterOption: 'all',
       fileType: 'image',
-      isDragging: false,  // 音频滚动条状态
-      currentDraggingIndex: null,
-      draggingProgress: {},
-      audioStates: {},
     },
     computed: {
       filteredTableData() {
@@ -517,7 +513,7 @@
           case 'unblock': this.handleBatchBlockOrUnblock('White'); break;
         }
       },
-      // 其他工具
+      // 工具相关
       checkBrokenFiles() {  // 检测失效文件
         const loadingMessage = this.$message({ message: '正在检测失效文件...', duration: 0});
 
@@ -572,117 +568,6 @@
           type: 'success',
           duration: 1500
         });
-      },
-      // 音频相关
-      startDragging(event, index) {
-        event.preventDefault();
-        this.isDragging = true;
-        this.currentDraggingIndex = index;
-
-        // 添加全局事件监听
-        document.addEventListener('mousemove', this.onDragging);
-        document.addEventListener('mouseup', this.stopDragging);
-
-        // 初始化拖动位置
-        this.updateDraggingProgress(event);
-      },
-      onDragging(event) {
-        if (!this.isDragging) return;
-
-        // 获取进度条元素
-        const progressBar = this.$refs.progressBar[this.currentDraggingIndex];
-        if (!progressBar) return;
-
-        const rect = progressBar.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
-
-        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
-      },
-      stopDragging() {
-        if (this.isDragging) {
-          const audio = this.$refs[`audio-${this.currentDraggingIndex}`]?.[0];
-          if (audio) {
-            const progress = this.draggingProgress[this.currentDraggingIndex] || 0;
-            audio.currentTime = (progress / 100) * audio.duration;
-          }
-        }
-        // 清理状态和事件监听
-        this.isDragging = false;
-        this.currentDraggingIndex = null;
-        document.removeEventListener('mousemove', this.onDragging);
-        document.removeEventListener('mouseup', this.stopDragging);
-      },
-      updateDraggingProgress(event) {
-        const progressBar = event.currentTarget;
-        const rect = progressBar.getBoundingClientRect();
-        const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
-        const percent = (x / rect.width) * 100;
-        this.$set(this.draggingProgress, this.currentDraggingIndex, percent);
-      },
-      isPlaying(index) {  // 判断音频是否正在播放
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        return audio ? !audio.paused : false;
-      },
-      togglePlay(index) {  // 切换音频播放状态
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return;
-        // 暂停其他正在播放的音频
-        this.tableData.forEach((file, i) => {
-          if (i !== index && this.isPlaying(i)) {
-            this.$refs[`audio-${i}`]?.[0].pause();
-          }
-        });
-        audio[audio.paused ? 'play' : 'pause']();
-      },
-      initAudio(event, index, name) {  // 初始化音频
-        const audio = event.target;
-        this.$set(this.audioStates, `duration-${index}`, this.formatTime(audio.duration));
-      },
-      updateProgress(event, index) {  // 更新音频进度
-        const audio = event.target;
-        this.$set(this.audioStates, `currentTime-${index}`, audio.currentTime);
-      },
-      onAudioEnded(index) {  // 音频播放结束
-        this.$set(this.audioStates, `currentTime-${index}`, 0);
-        this.togglePlay(index + 1);
-      },
-      getCurrentTime(index) {  // 获取当前音频时间
-        const time = this.audioStates[`currentTime-${index}`] || 0;
-        return this.formatTime(time);
-      },
-      getDuration(index) {  // 获取音频时长
-        return this.audioStates[`duration-${index}`] || '0:00';
-      },
-      getDraggingProgress(index) {  // 获取拖拽进度
-        if (this.isDragging && this.currentDraggingIndex === index) {
-          return this.draggingProgress[index] || 0;
-        }
-        return this.getProgress(index);
-      },
-      getProgress(index) {  // 获取音频进度
-        const currentTime = this.audioStates[`currentTime-${index}`] || 0;
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return 0;
-        return (currentTime / audio.duration) * 100 || 0;
-      },
-      seekAudio(event, index) {  // 拖拽音频进度
-        if (this.isDragging) return;
-
-        const audio = this.$refs[`audio-${index}`]?.[0];
-        if (!audio) return;
-
-        const progressBar = event.currentTarget;
-        const rect = progressBar.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const percent = x / rect.width;
-
-        audio.currentTime = percent * audio.duration;
-      },
-      formatTime(seconds) {  // 格式化时间
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
       },
     },
     mounted() {
