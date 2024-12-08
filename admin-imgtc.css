@@ -461,6 +461,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+  flex-shrink: 0;
   z-index: 1; /* 确保按钮可点击 */
 }
 
@@ -472,15 +473,8 @@ body {
 .play-btn {
   width: 48px;
   height: 48px;
-  border: none;
-  border-radius: 50%;
   background: white;
   color: #8a4bff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
 }
 
 .play-btn:hover {
@@ -499,9 +493,11 @@ body {
 .like-btn .liked {
   color: #FFD7E4;
 }
+
 .select-btn .selected {
   color: #8a4bff;
 }
+
 .like-btn i, .select-btn i {
   scale: 1.2;
 }
