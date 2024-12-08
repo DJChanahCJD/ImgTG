@@ -105,10 +105,6 @@ body {
   color: #333;
 }
 
-.header-content .actions .el-dropdown-link i:hover {
-  color: #B39DDB; /* 使用柔和的淡紫色 */
-}
-
 .header-content .actions .disabled {
   color: #bbb;
   pointer-events: none;
