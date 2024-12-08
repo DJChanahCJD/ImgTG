@@ -39,10 +39,10 @@
      position: absolute;
      right: 0px;
       ">
-            <a href="./admin-imgtc.html">
+            <a href="./pages/admin-imgtc/admin-imgtc.html">
               <el-button size="mini" type="warning">网格视图</el-button>
             </a>
-            <a href="./admin-waterfall.html">
+            <a href="./pages/admin-waterfall/admin-waterfall.html">
               <el-button size="mini" type="primary">瀑布流</el-button>
             </a>
             <el-button v-if="showLogoutButton" size="mini" type="info" @click="handleLogout()">退出登录</el-button></span>
@@ -58,7 +58,7 @@
           <!--<el-col :span="8">
               <el-card shadow="hover">
                 <el-tooltip class="item" effect="dark" content="白名单数量" placement="top-start">
-                   
+
                 </el-tooltip>
                 白名单数量：{{ WhiteList }}
               </el-card>
@@ -66,7 +66,7 @@
             <el-col :span="8">
               <el-card shadow="hover">
                 <el-tooltip class="item" effect="dark" content="黑名单数量" placement="top-start">
-                
+
               </el-tooltip>
               黑名单数量：{{ BlackList }}
               </el-card>
