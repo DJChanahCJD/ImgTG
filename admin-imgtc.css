@@ -222,7 +222,6 @@ body {
 
 .el-card, .el-card__body{
   border: none !important;
-  border-radius: none !important;
 }
 .el-card:hover .image-overlay {
   opacity: 1;
@@ -292,7 +291,7 @@ body {
 }
 
 /* 音频卡片基础样式 */
-.audio-card {
+el-card .audio-card {
   background: linear-gradient(135deg, #8a4bffd9 0%, #6d82ffd9 100%);
   border: none;
   border-radius: 16px;
@@ -369,7 +368,7 @@ body {
   height: 48px;
   margin: 15px 0;
   border-radius: 18px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 
