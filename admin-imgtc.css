@@ -281,6 +281,7 @@ body {
     grid-template-columns: 1fr; /* 单列布局 */
     gap: 10px;
   }
+  .stats-text{display: none;}
   .header-content{padding: 8px 12px;}
   .stats{margin-left: auto;}
   .stats, .actions i{margin: 0;}

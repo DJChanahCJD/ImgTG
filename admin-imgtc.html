@@ -18,7 +18,7 @@
           <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card"><el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input></div>
           <el-tooltip content="批量上传" placement="bottom">
-            <span class="stats" @click="handleUpload"><i class="fas fa-upload upload-icon"></i>记录数: {{ Number }}</span>
+            <span class="stats" @click="handleUpload"><i class="fas fa-upload upload-icon"></i><span class="stats-text">记录数: </span>{{ Number }}</span>
           </el-tooltip>
           <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
           <div class="actions">
@@ -467,7 +467,8 @@
       handleCopy(index, key) {
         const link = `${this.baseURL}/file/${key}`;
         (navigator.clipboard?.writeText(link) || this.copyToClipboardFallback(link))
-          .then(() => this.$message.success('复制文件链接成功~'));
+          .then(() => this.$message.success('复制文件链接成功~'))
+          .catch(() => this.$message.error('自动复制失败，请手动复制链接：' + link));
       },
       // 批处理相关
       selectAllInPage() {  // 全选当前页
