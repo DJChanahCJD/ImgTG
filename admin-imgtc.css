@@ -70,7 +70,6 @@ body {
   color: #B39DDB;
 }
 
-/* 上传图标样式优化 */
 .upload-icon {
   margin-right: 10px;
   font-size: clamp(1.2em, 1.5vw, 1.6em);
@@ -79,7 +78,7 @@ body {
   cursor: pointer;
   border-radius: 50%;
   padding: 8px;
-  background-color: rgba(179, 157, 219, 0.15); /* 淡紫色的背景，与整体风格一致 */
+  background-color: rgba(179, 157, 219, 0.15);
   border: 1px solid transparent;
 }
 
@@ -97,7 +96,7 @@ body {
 }
 
 .header-content .actions i:hover {
-  color: #B39DDB; /* 使用柔和的淡紫色 */
+  color: #B39DDB;
   transform: scale(1.1);
 }
 
@@ -288,7 +287,7 @@ body {
   .el-card{aspect-ratio: unset; min-height: 180px;}
   .el-card__body{padding: 0;}
   .search-card {display: none;}
-  .header-content .actions{margin: 0 4px;}
+  .header-content .actions i{margin: 0 4px;}
 }
 
 /* 音视频卡片基础样式 */
