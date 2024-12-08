@@ -45,14 +45,14 @@ export async function onRequestPost(context) {
             // 尝试最多3次获取文件信息
             let filePath = null;
             let attempts = 3;
-            let fileInfoResponse = null;
+            let fileInfo = null;
 
             while (attempts > 0 && !filePath) {
                 try {
                     // 等待一段时间再尝试获取文件信息
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
-                    fileInfoResponse = await fetch(
+                    const fileInfoResponse = await fetch(
                         `https://api.telegram.org/bot${env.TG_Bot_Token}/getFile?file_id=${fileId}`,
                         {
                             method: 'GET',
@@ -62,13 +62,11 @@ export async function onRequestPost(context) {
                         }
                     );
 
-                    const fileInfo = await fileInfoResponse.json();
+                    fileInfo = await fileInfoResponse.json();
                     console.log('File info response:', fileInfo);
 
                     if (fileInfoResponse.ok && fileInfo.ok && fileInfo.result?.file_path) {
                         filePath = fileInfo.result.file_path;
-                        // 构建完整的下载链接
-                        const downloadUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
                         break;
                     }
                 } catch (error) {
@@ -85,7 +83,7 @@ export async function onRequestPost(context) {
                     'file_id': fileId,
                     'telegram_path': filePath,
                     'download_url': filePath ? `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}` : null,
-                    'fileInfoResponse': fileInfoResponse,
+                    'file_info': fileInfo,
                     'name': fileName,
                     'mime_type': mimeType,
                     'size': uploadFile.size,
